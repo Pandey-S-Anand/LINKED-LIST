@@ -1,0 +1,67 @@
+//Bruteforce approach
+
+public class Solution {
+    public ListNode detectCycle(ListNode head) {
+        // Set to store visited nodes
+        Set<ListNode> seenNodes = new HashSet<>();
+
+        ListNode currentNode = head;
+
+        while (currentNode != null) {
+            // If the current node has been visited before, it means we have a cycle
+            if (seenNodes.contains(currentNode)) {
+                return currentNode; // Return the node where the cycle starts
+            }
+            // Mark the current node as visited
+            seenNodes.add(currentNode);
+            currentNode = currentNode.next;
+        }
+
+        // If no cycle is found, return null
+        return null;
+    }
+}
+
+
+//Optimal approach
+
+public class Solution {
+    public ListNode detectCycle(ListNode head) {
+        // Step 1: Check for the existence of a cycle and find the meeting point if a cycle is detected
+        ListNode meetingPoint = getMeetingPoint(head);
+
+        if (meetingPoint == null) {
+            return null; // No cycle found
+        }
+
+        // Step 2: Find the start of the cycle
+        return getCycleStart(head, meetingPoint);
+    }
+
+    private ListNode getMeetingPoint(ListNode head) {
+        ListNode slow = head, fast = head;
+
+        while (fast != null && fast.next != null) {
+            slow = slow.next;
+            fast = fast.next.next;
+
+            if (slow == fast) {
+                return slow; // Meeting point
+            }
+        }
+
+        return null; // No cycle detected
+    }
+
+    private ListNode getCycleStart(ListNode head, ListNode meetingPoint) {
+        ListNode pointer1 = head;
+        ListNode pointer2 = meetingPoint;
+
+        while (pointer1 != pointer2) {
+            pointer1 = pointer1.next;
+            pointer2 = pointer2.next;
+        }
+
+        return pointer1; // Start of the cycle
+    }
+}
