@@ -65,3 +65,37 @@ public class Solution {
         return pointer1; // Start of the cycle
     }
 }
+
+/**
+ * The `getCycleStart` method works because of the following reasoning:
+ *
+ * Structure of a linked list with a cycle:
+ * - L: Distance from the head to the start of the cycle.
+ * - C: Total length of the cycle.
+ * - X: Distance from the start of the cycle to the meeting point.
+ *
+ * Step 1: Detecting the cycle
+ * - Two pointers, `slow` and `fast`, traverse the list.
+ *   - `slow` moves one step at a time.
+ *   - `fast` moves two steps at a time.
+ * - If a cycle exists, `slow` and `fast` will eventually meet at a point inside the cycle.
+ *
+ * Step 2: Key Distance Relationship
+ * - When the pointers meet at the meeting point (M), the distances traveled are:
+ *   - `slow`: L + X
+ *   - `fast`: L + X + k * C (where k is the number of full loops by `fast`).
+ * - Since `fast` moves twice as fast as `slow`:
+ *   2(L + X) = L + X + k * C
+ *   => L + X = k * C
+ * - This implies that the distance from the head to the start of the cycle (L)
+ *   is equal to the distance from the meeting point to the start of the cycle (C - X).
+ *
+ * Step 3: Resetting and Moving Pointers
+ * - One pointer (`slow`) is reset to the head.
+ * - The other pointer (`fast`) remains at the meeting point (M).
+ * - Both pointers move one step at a time.
+ * - After L steps from the head and (C - X) steps from the meeting point,
+ *   both pointers will meet at the start of the cycle.
+ *
+ * This ensures that the algorithm correctly identifies the start of the cycle.
+ */
