@@ -1,0 +1,128 @@
+//Bruteforce Approach
+
+/**
+ * Definition for singly-linked list.
+ * public class ListNode {
+ *     int val;
+ *     ListNode next;
+ *     ListNode(int x) {
+ *         val = x;
+ *         next = null;
+ *     }
+ * }
+ */
+ 
+public class Solution {
+    public ListNode getIntersectionNode(ListNode headA, ListNode headB) {
+        // Create a set to store all the nodes from the first linked list (headA)
+        Set<ListNode> seenNodes = new HashSet<>();
+
+        // Traverse through the first linked list and add each node to the set
+        ListNode node = headA;
+        while (node != null) {
+            seenNodes.add(node);
+            node = node.next;
+        }
+
+        // Traverse through the second linked list (headB) and check if any node is already in the set
+        node = headB;
+        while (node != null) {
+            // If a node from headB is in the set, it means the two lists intersect at this node
+            if (seenNodes.contains(node)) {
+                return node; // Return the intersection node
+            }
+            node = node.next;
+        }
+
+        // If no intersection node is found, return null
+        return null;
+    }
+}
+
+
+//Better approach
+
+public class Solution {
+    public ListNode getIntersectionNode(ListNode headA, ListNode headB) {
+        int sizeA = getSize(headA);
+        int sizeB = getSize(headB);
+        int gap = Math.abs(sizeA - sizeB);
+        ListNode currentNodeA = headA;
+        ListNode currentNodeB = headB;
+
+        // Move the pointer of the larger list to the same starting position as the smaller one
+        if (sizeA > sizeB) {
+            currentNodeA = moveToEqualPosition(currentNodeA, gap);
+        } else {
+            currentNodeB = moveToEqualPosition(currentNodeB, gap);
+        }
+
+        // Traverse both lists together to find the intersection node
+        while (currentNodeA != currentNodeB) {
+            currentNodeA = currentNodeA.next;
+            currentNodeB = currentNodeB.next;
+        }
+
+        return currentNodeA; // or headB, as both are the same at the intersection point or null
+    }
+
+    private int getSize(ListNode head) {
+        ListNode slow = head;
+        ListNode fast = head;
+        int size = 0;
+
+        while (fast != null && fast.next != null) {
+            slow = slow.next;
+            fast = fast.next.next;
+            size += 2;
+        }
+
+        if (fast != null) {
+            size++;
+        }
+
+        return size;
+    }
+
+    private ListNode moveToEqualPosition(ListNode node, int gap) {
+        while (gap-- > 0) {
+            node = node.next;
+        }
+
+        return node;
+    }
+}
+
+
+//Optimal Approach
+
+public class Solution {
+    public ListNode getIntersectionNode(ListNode headA, ListNode headB) {
+        ListNode currentNodeA = headA;
+        ListNode currentNodeB = headB;
+
+        while (currentNodeA != currentNodeB) {
+            // Move each pointer to the next node in their respective lists
+            currentNodeA = currentNodeA.next;
+            currentNodeB = currentNodeB.next;
+
+            // If both pointers reach the end of their respective lists simultaneously, it means there is no intersection, so return null.
+            if (currentNodeA == null && currentNodeB == null) {
+                return null;
+            }
+
+            // If currentNodeA reaches the end of list A, reset it to the head of list B
+            if (currentNodeA == null) {
+                currentNodeA = headB;
+            }
+
+            // If currentNodeB reaches the end of list B, reset it to the head of list A
+            if (currentNodeB == null) {
+                currentNodeB = headA;
+            }
+        }
+
+        // Return the intersection node
+        return currentNodeA;
+    }
+}
