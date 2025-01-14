@@ -1,0 +1,165 @@
+/**
+ * Definition for singly-linked list.
+ * public class ListNode {
+ * int val;
+ * ListNode next;
+ * ListNode() {}
+ * ListNode(int val) { this.val = val; }
+ * ListNode(int val, ListNode next) { this.val = val; this.next = next; }
+ * }
+ */
+
+//Bruteforce approach
+
+class Solution {
+    public ListNode oddEvenList(ListNode head) {
+        // Base case: If the list is empty, no rearrangement is needed
+        if (head == null) {
+            return head;
+        }
+
+        // Lists to store the values of odd-indexed and even-indexed nodes
+        List<Integer> oddNodeValues = new ArrayList<>();
+        List<Integer> evenNodeValues = new ArrayList<>();
+        ListNode currentNode = head;
+        boolean isOddIndex = true;
+
+        // Traverse the linked list and separate node values into odd and even indexed lists
+        while (currentNode != null) {
+            if (isOddIndex) {
+                oddNodeValues.add(currentNode.val); // Add to odd-indexed list
+            } else {
+                evenNodeValues.add(currentNode.val); // Add to even-indexed list
+            }
+
+            isOddIndex = !isOddIndex; // Alternate between odd and even indexes
+            currentNode = currentNode.next; // Move to the next node
+        }
+
+        // Reassign the values back to the linked list
+        currentNode = head;
+
+        // Assign values from the odd-indexed list
+        for (int oddNodeValue : oddNodeValues) {
+            currentNode.val = oddNodeValue;
+            currentNode = currentNode.next;
+        }
+
+        // Assign values from the even-indexed list
+        for (int evenNodeValue : evenNodeValues) {
+            currentNode.val = evenNodeValue;
+            currentNode = currentNode.next;
+        }
+
+        return head;
+    }
+}
+
+
+//Better Approach
+ 
+class Solution {
+    public ListNode oddEvenList(ListNode head) {
+        // Base case: If the singly linked list is empty or has only one node, no rearrangement is needed
+        if (head == null || head.next == null) {
+            return head;
+        }
+
+        // Create two separate singly linked lists for odd-indexed and even-indexed nodes
+        SinglyLinkedList oddIndexedNodes = new SinglyLinkedList();
+        SinglyLinkedList evenIndexedNodes = new SinglyLinkedList();
+        ListNode currentNode = head;
+        boolean isOddIndex = true;
+
+        // Traverse the original singly linked list and divide nodes into odd and even indexed nodes
+        while (currentNode != null) {
+            if (isOddIndex) {
+                oddIndexedNodes.append(currentNode.val); // Add to odd-indexed singly linked list
+            } else {
+                evenIndexedNodes.append(currentNode.val); // Add to even-indexed singly linked list
+            }
+
+            isOddIndex = !isOddIndex; // Alternate between odd and even indexes
+            currentNode = currentNode.next; // Move to the next node
+        }
+
+        // Combine the two singly linked lists by connecting the tail of the odd-indexed singly linked list to the head of the even-indexed singly linked list
+        oddIndexedNodes.getTail().next = evenIndexedNodes.getHead();
+
+        // Return the rearranged singly linked list starting from the head of the odd-indexed singly linked list
+        return oddIndexedNodes.getHead();
+    }
+}
+
+class SinglyLinkedList {
+    private ListNode head;
+    private ListNode tail;
+
+    public ListNode getHead() {
+        return this.head;
+    }
+
+    public ListNode getTail() {
+        return this.tail;
+    }
+
+    public void append(int data) {
+        ListNode newNode = new ListNode(data);
+        if (head == null) {
+            head = tail = newNode;
+        } else {
+            tail.next = newNode;
+            tail = newNode;
+        }
+    }
+}
+
+
+
+//Optimal Approach
+
+class Solution {
+    public ListNode oddEvenList(ListNode head) {
+        if (head == null || head.next == null) {
+            return head;
+        }
+
+        ListNode currentOddNode = head; // Pointer to traverse nodes in odd-indexed positions
+        ListNode currentEvenNode = head.next; // Pointer to traverse nodes in even-indexed positions
+        ListNode evenHead = currentEvenNode; // Store the head of the even-indexed list to attach later
+
+        /*
+         * The condition `currentEvenNode != null && currentEvenNode.next != null` is crucial:
+         * 
+         * 1. `currentEvenNode.next != null`:
+         *    - This is necessary because when the list has an even length, 
+         *      the last node will be an even-indexed node, and its `next` will be null. 
+         *      Without this check, trying to access `currentEvenNode.next` would result 
+         *      in a NullPointerException.
+         *      Example: 1 -> 2 -> 3 -> 4
+         * 
+         * 2. `currentEvenNode != null`:
+         *    - This is important for lists with an odd length, where the last node is 
+         *      an odd-indexed node. In such cases, `currentEvenNode` will become null 
+         *      during traversal, and accessing `currentEvenNode.next` without this check 
+         *      would also cause a NullPointerException.
+         *      Example: 1 -> 2 -> 3 -> 4 -> 5
+         */
+        // Rearrange the nodes into odd and even groups
+        while (currentEvenNode != null && currentEvenNode.next != null) {
+            // Link the current odd node to the next odd-indexed node
+            currentOddNode.next = currentEvenNode.next;
+            currentOddNode = currentOddNode.next; // Move the odd pointer forward
+
+            // Link the current even node to the next even-indexed node
+            currentEvenNode.next = currentOddNode.next;
+            currentEvenNode = currentEvenNode.next; // Move the even pointer forward
+        }
+
+        // Connect the end of the odd-indexed list to the head of the even-indexed list
+        currentOddNode.next = evenHead;
+
+        // Return the modified list starting from the original head
+        return head;
+    }
+}
