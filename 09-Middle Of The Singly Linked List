@@ -61,14 +61,14 @@ class Solution {
      * - This eliminates the need for calculating the track length first, making the approach more efficient.
      * 
      * Additional Notes:
-     * - For an **odd-sized list** (e.g., `1 -> 2 -> 3`), the loop ends when `currentFast.next == null`, 
-     *   ensuring that `currentSlow` is at the exact middle node (`2`).
-     * - For an **even-sized list** (e.g., `1 -> 2 -> 3 -> 4`), the loop ends when `currentFast == null`, 
-     *   ensuring that `currentSlow` points to the second middle node (`3`).
+     * - For an **odd-sized list** (e.g., `1 -> 2 -> 3`), the loop ends when `fast.next == null`, 
+     *   ensuring that `slow` is at the exact middle node (`2`).
+     * - For an **even-sized list** (e.g., `1 -> 2 -> 3 -> 4`), the loop ends when `fast == null`, 
+     *   ensuring that `slow` points to the second middle node (`3`).
      * - **As per the problem's requirement**, for even-sized lists, there are two middle nodes, 
      *   and we are expected to treat the second middle node as the middle.
-     * - The condition `currentFast != null` ensures proper handling for even-sized lists, 
-     *   while `currentFast.next != null` handles odd-sized lists.
+     * - The condition `fast != null` ensures proper handling for even-sized lists, 
+     *   while `fast.next != null` handles odd-sized lists.
      */
     public ListNode middleNode(ListNode head) {
         ListNode slow = head; // Moves one step at a time
