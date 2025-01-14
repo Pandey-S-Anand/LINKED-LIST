@@ -135,3 +135,91 @@ class Solution {
         }
     }
 }
+
+
+// Aliter
+
+
+class Solution {
+    // Pointers for the merged list head and tail
+    private ListNode mergedHead;
+    private ListNode mergedTail;
+
+    public ListNode sortList(ListNode head) {
+        if (head == null) {
+            return head;
+        }
+
+        return mergeSort(head);
+    }
+
+    private ListNode mergeSort(ListNode head) {
+        if (head.next == null) {
+            return head;
+        }
+
+        ListNode middleNode = findMiddleNode(head);
+        ListNode secondHalfHead = middleNode.next;
+        middleNode.next = null;
+
+        ListNode leftHead = mergeSort(head);
+        ListNode rightHead = mergeSort(secondHalfHead);
+
+        merge(leftHead, rightHead);
+
+        return mergedHead;
+    }
+
+    private ListNode findMiddleNode(ListNode head) {
+        ListNode slow = head; // Slow pointer starts at the head
+        ListNode fast = head.next; // Fast pointer starts at the second node
+
+        // Traverse the list using two pointers
+        while (fast != null && fast.next != null) {
+            slow = slow.next; // Move the slow pointer one step
+            fast = fast.next.next; // Move the fast pointer two steps
+        }
+
+        // When the loop exits:
+        // - slow points to the middle node (odd-length list)
+        // - slow points to the first middle node (even-length list)
+        return slow;
+    }
+
+    private void merge(ListNode head1, ListNode head2) {
+        mergedHead = null;
+        mergedTail = null;
+
+        ListNode currentNode1 = head1;
+        ListNode currentNode2 = head2;
+
+        while (currentNode1 != null && currentNode2 != null) {
+            if (currentNode1.val <= currentNode2.val) {
+                append(currentNode1);
+                currentNode1 = currentNode1.next;
+            } else {
+                append(currentNode2);
+                currentNode2 = currentNode2.next;
+            }
+        }
+
+        if (currentNode1 != null) {
+            append(currentNode1);
+            currentNode1 = currentNode1.next;
+        }
+
+        if (currentNode2 != null) {
+            append(currentNode2);
+            currentNode2 = currentNode2.next;
+        }
+    }
+
+    private void append(ListNode node) {
+        if (mergedHead == null) {
+            mergedHead = mergedTail = node;
+        } else {
+            mergedTail.next = node;
+            mergedTail = mergedTail.next;
+        }
+    }
+}
