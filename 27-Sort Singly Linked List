@@ -141,7 +141,6 @@ class Solution {
 
 
 class Solution {
-    // Pointers for the merged list head and tail
     private ListNode mergedHead;
     private ListNode mergedTail;
 
