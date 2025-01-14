@@ -1,0 +1,128 @@
+//Bruteforce Approach
+
+class Solution {
+    static Node segregate(Node head) {
+        Node currentNode = head;
+        int count0 = 0;
+        int count1 = 0;
+        int count2 = 0;
+
+        while (currentNode != null) {
+            int value = currentNode.data;
+            if (value == 0) {
+                count0++;
+            } else if (value == 1) {
+                count1++;
+            } else {
+                count2++;
+            }
+
+            currentNode = currentNode.next;
+        }
+
+        currentNode = head;
+
+        while (count0-- > 0) {
+            currentNode.data = 0;
+            currentNode = currentNode.next;
+        }
+
+        while (count1-- > 0) {
+            currentNode.data = 1;
+            currentNode = currentNode.next;
+        }
+
+        while (count2-- > 0) {
+            currentNode.data = 2;
+            currentNode = currentNode.next;
+        }
+
+        return head;
+    }
+}
+
+
+
+//Optimal Approach
+
+class Solution {
+    static Node zeroHead, oneHead, twoHead, zeroTail, oneTail, twoTail;
+
+    static Node segregate(Node head) {
+        zeroHead = oneHead = twoHead = zeroTail = oneTail = twoTail = null;
+        Node currentNode = head;
+
+        // Traverse the original singly linked list and segregate nodes into three groups.
+        while (currentNode != null) {
+            int value = currentNode.data;
+
+            if (value == 0) {
+                appendNode(currentNode, 0); // Append the node to the 0s group.
+            } else if (value == 1) {
+                appendNode(currentNode, 1); // Append the node to the 1s group.
+            } else {
+                appendNode(currentNode, 2); // Append the node to the 2s group.
+            }
+
+            // Move to the next node in the singly linked list.
+            currentNode = currentNode.next;
+        }
+
+        // Connect the three groups of nodes to form the sorted singly linked list.
+        return connectGroups();
+    }
+
+    private static void appendNode(Node node, int group) {
+        if (group == 0) {
+            if (zeroTail == null) {
+                zeroHead = zeroTail = node; // If the group is empty, the node becomes both head and tail.
+            } else {
+                zeroTail.next = node;
+                zeroTail = node; // Update the tail of the 0s group.
+            }
+        } else if (group == 1) {
+            if (oneTail == null) {
+                oneHead = oneTail = node; // If the group is empty, the node becomes both head and tail.
+            } else {
+                oneTail.next = node;
+                oneTail = node; // Update the tail of the 1s group.
+            }
+        } else {
+            if (twoTail == null) {
+                twoHead = twoTail = node; // If the group is empty, the node becomes both head and tail.
+            } else {
+                twoTail.next = node;
+                twoTail = node; // Update the tail of the 2s group.
+            }
+        }
+    }
+
+    private static Node connectGroups() {
+        if (zeroTail != null) {
+            zeroTail.next = (oneHead != null) ? oneHead : twoHead; // Connect the 0s group to the 1s or 2s group.
+        }
+
+        if (oneTail != null) {
+            oneTail.next = twoHead; // Connect the 1s group to the 2s group.
+        }
+
+        if (twoTail != null) {
+            twoTail.next = null; // Terminate the singly linked list.
+        }
+
+        // Determine the new head of the sorted singly linked list
+        return determineHead();
+    }
+
+    private static Node determineHead() {
+        if (zeroHead != null) {
+            return zeroHead; // Head of the 0s group becomes the new head.
+        }
+
+        if (oneHead != null) {
+            return oneHead; // Head of the 1s group becomes the new head.
+        }
+
+        return twoHead; // Head of the 2s group becomes the new head.
+    }
+}
