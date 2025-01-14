@@ -71,15 +71,15 @@ class Solution {
      *   while `currentFast.next != null` handles odd-sized lists.
      */
     public ListNode middleNode(ListNode head) {
-        ListNode currentSlow = head; // Moves one step at a time
-        ListNode currentFast = head; // Moves two steps at a time
+        ListNode slow = head; // Moves one step at a time
+        ListNode fast = head; // Moves two steps at a time
 
         // Fast pointer reaches the end, and slow pointer reaches the middle
-        while (currentFast != null && currentFast.next != null) {
-            currentFast = currentFast.next.next;
-            currentSlow = currentSlow.next;
+        while (fast != null && fast.next != null) {
+            fast = fast.next.next;
+            slow = slow.next;
         }
 
-        return currentSlow; // Slow pointer points to the middle node
+        return slow; // Slow pointer points to the middle node
     }
 }
