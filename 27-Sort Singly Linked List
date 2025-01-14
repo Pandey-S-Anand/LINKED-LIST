@@ -1,0 +1,137 @@
+/**
+ * Definition for singly-linked list.
+ * public class ListNode {
+ * int val;
+ * ListNode next;
+ * ListNode() {}
+ * ListNode(int val) { this.val = val; }
+ * ListNode(int val, ListNode next) { this.val = val; this.next = next; }
+ * }
+ */
+
+ //Bruteforce approach
+
+class Solution {
+    public ListNode sortList(ListNode head) {
+        // Create a list to store node values
+        List<Integer> nodeValues = new ArrayList<>();
+
+        // Traverse the singly linked list and add each node's value to the list
+        ListNode currentNode = head;
+        while (currentNode != null) {
+            nodeValues.add(currentNode.val); // Add the current node value to the list
+            currentNode = currentNode.next; // Move to the next node
+        }
+
+        // Sort the list of node values in ascending order
+        Collections.sort(nodeValues);
+
+        // Reassign the sorted values back to the singly linked list nodes
+        currentNode = head;
+        for (int nodeValue : nodeValues) {
+            currentNode.val = nodeValue; // Update the value of the current node
+            currentNode = currentNode.next; // Move to the next node
+        }
+
+        // Return the head of the modified, sorted singly linked list
+        return head;
+    }
+}
+
+
+//Optimal approach
+
+class Solution {
+    // Pointers for the merged list head and tail
+    private ListNode mergedHead;
+    private ListNode mergedTail;
+
+    public ListNode sortList(ListNode head) {
+        // Base case: If the singly linked list is empty, return null
+        if (head == null) {
+            return head;
+        }
+
+        // Perform merge sort on the singly linked list
+        return mergeSort(head);
+    }
+
+    private ListNode mergeSort(ListNode head) {
+        // Base case: If the singly linked list contains only one node, it is already sorted
+        if (head.next == null) {
+            return head;
+        }
+
+        // Find the middle node to split the singly linked list into two halves
+        ListNode middleNode = findMiddleNode(head);
+        ListNode secondHalfHead = middleNode.next; // Start of the second half
+        middleNode.next = null; // Break the singly linked list into two parts
+
+        // Recursively sort the left and right halves
+        ListNode leftHead = mergeSort(head);
+        ListNode rightHead = mergeSort(secondHalfHead);
+
+        // Merge the sorted halves
+        merge(leftHead, rightHead);
+
+        // Return the head of the merged and sorted list
+        return mergedHead;
+    }
+
+    private ListNode findMiddleNode(ListNode head) {
+        ListNode slow = head;
+        ListNode fast = head;
+        ListNode slowPrevious = null;
+
+        while (fast != null && fast.next != null) {
+            slowPrevious = slow;
+            slow = slow.next;
+            fast = fast.next.next;
+        }
+
+        // If the list length is odd, return the middle node
+        if (fast != null) {
+            return slow;
+        }
+
+        // If the list length is even, return the first middle node
+        return slowPrevious;
+    }
+
+    private void merge(ListNode head1, ListNode head2) {
+        mergedHead = null;
+        mergedTail = null;
+
+        ListNode currentNode1 = head1;
+        ListNode currentNode2 = head2;
+
+        while (currentNode1 != null && currentNode2 != null) {
+            if (currentNode1.val <= currentNode2.val) {
+                append(currentNode1);
+                currentNode1 = currentNode1.next;
+            } else {
+                append(currentNode2);
+                currentNode2 = currentNode2.next;
+            }
+        }
+
+        if (currentNode1 != null) {
+            append(currentNode1);
+            currentNode1 = currentNode1.next;
+        }
+
+        if (currentNode2 != null) {
+            append(currentNode2);
+            currentNode2 = currentNode2.next;
+        }
+    }
+
+    private void append(ListNode node) {
+        if (mergedHead == null) {
+            mergedHead = mergedTail = node;
+        } else {
+            mergedTail.next = node;
+            mergedTail = mergedTail.next;
+        }
+    }
+}
