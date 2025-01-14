@@ -1,0 +1,108 @@
+//Bruteforce approach
+
+class Solution {
+    public ListNode removeNthFromEnd(ListNode head, int n) {
+        // 'targetIndex', represents the index of the node to be removed from the beginning of the list.
+        int targetIndex = getSize(head) - n;
+
+        /*
+         * Test Case 1: Remove the first node from a list with multiple nodes
+         * Input: [1, 2, 3, 4, 5], n = 5 (remove the first node)
+         * Expected Output: [2, 3, 4, 5]
+         * Explanation: Since n = 5, the target index is 0, so the first node (1) will be removed.
+         * 
+         * Test Case 2: Remove the only node in the list
+         * Input: [1], n = 1 (remove the only node)
+         * Expected Output: []
+         * Explanation: Since there's only one node and n = 1, the head node (1) will be removed, leaving the list empty.
+         */
+        // Special case: If we need to remove the head of the list
+        if (targetIndex == 0) {
+            head = head.next;
+            return head;
+        }
+
+        ListNode currentNode = head;
+
+        // Traverse to the node just before the target node
+        while (targetIndex > 1) {
+            currentNode = currentNode.next;
+            targetIndex--;
+        }
+
+        // Skip the node to remove
+        currentNode.next = currentNode.next.next;
+
+        return head;
+    }
+
+    private int getSize(ListNode head) {
+        int size = 0;
+        ListNode slowPointer = head;
+        ListNode fastPointer = head;
+
+        while (fastPointer != null && fastPointer.next != null) {
+            slowPointer = slowPointer.next;
+            fastPointer = fastPointer.next.next;
+            size += 2;
+        }
+
+        if (fastPointer != null) {
+            size++;
+        }
+
+        return size;
+    }
+}
+
+
+//Optimal approach
+
+/*
+ * The algorithm uses the two-pointer technique to efficiently remove the N-th node from the end of the list.
+ * 
+ * 1. The fast pointer is advanced by `n` steps ahead of the slow pointer. This creates a gap of `n` nodes between them.
+ *    - By the time the fast pointer reaches the last node (i.e., `fast.next == null`), the slow pointer will be 
+ *      positioned just before the node that needs to be deleted.
+ * 
+ * 2. After advancing the fast pointer, both pointers (fast and slow) are moved simultaneously, one step at a time, 
+ *    until the fast pointer reaches the last node. This ensures that when the fast pointer reaches the last node, 
+ *    the slow pointer is at the node just before the target node to be deleted.
+ * 
+ * 3. If the fast pointer becomes `null` after moving `n` steps, it means the node to be deleted is the head of the list.
+ *    - In this case, we return `head.next`, effectively removing the head node.
+ */
+
+class Solution {
+    public ListNode removeNthFromEnd(ListNode head, int n) {
+        // Special case: If the singly linked list is empty, return null
+        if (head == null) {
+            return null;
+        }
+        
+        // Initialize two pointers, fast and slow, both starting from the head
+        ListNode fast = head;
+        ListNode slow = head;
+        
+        // Move the fast pointer n steps ahead
+        for (int i = 1; i <= n; i++) {
+            fast = fast.next;
+        }
+
+        // If fast is null after moving n steps, it means we need to remove the head node
+        if (fast == null) {
+            return head.next; // Remove the first node (head)
+        }
+        
+        // Move both pointers until fast reaches the end of the singly linked list
+        while (fast.next != null) {
+            fast = fast.next;
+            slow = slow.next;
+        }
+        
+        // Remove the nth node from the end
+        slow.next = slow.next.next;
+        
+        return head; // Return the modified singly linked list
+    }
+}
