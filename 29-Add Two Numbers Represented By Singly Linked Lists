@@ -1,0 +1,61 @@
+/**
+ * Definition for singly-linked list.
+ * public class ListNode {
+ * int val;
+ * ListNode next;
+ * ListNode() {}
+ * ListNode(int val) { this.val = val; }
+ * ListNode(int val, ListNode next) { this.val = val; this.next = next; }
+ * }
+ */
+ 
+class Solution {
+    private ListNode head; // Head pointer of the resultant singly linked list
+    private ListNode tail; // Tail pointer of the resultant singly linked list
+
+    public ListNode addTwoNumbers(ListNode num1, ListNode num2) {
+        int carry = 0; // Initialize carry to 0
+
+        // Case 1: Process nodes from both the singly linked lists representing two numbers
+        while (num1 != null && num2 != null) {
+            int sum = num1.val + num2.val + carry; // Sum current digits and carry
+            carry = sum / 10; // Update carry for the next iteration
+            append(new ListNode(sum % 10)); // Append the current digit to the resultant singly linked list
+
+            num1 = num1.next; // Move to the next node in the first singly linked list
+            num2 = num2.next; // Move to the next node in the second singly linked list
+        }
+
+        // Case 2: Process remaining nodes of the second singly linked list
+        while (num2 != null) {
+            int sum = num2.val + carry;
+            carry = sum / 10;
+            append(new ListNode(sum % 10));
+            num2 = num2.next;
+        }
+
+        // Case 3: Process remaining nodes of the first singly linked list
+        while (num1 != null) {
+            int sum = num1.val + carry;
+            carry = sum / 10;
+            append(new ListNode(sum % 10));
+            num1 = num1.next;
+        }
+
+        // Handle any remaining carry
+        if (carry == 1) {
+            append(new ListNode(carry));
+        }
+
+        return head; // Return the head of the resultant singly linked list
+    }
+
+    private void append(ListNode newNode) {
+        if (head == null) {
+            head = tail = newNode;
+        } else {
+            tail.next = newNode;
+            tail = newNode;
+        }
+    }
+}
