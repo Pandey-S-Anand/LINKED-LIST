@@ -59,3 +59,38 @@ class Solution {
         }
     }
 }
+
+
+//Aliter
+
+class Solution {
+    private ListNode head;
+    private ListNode tail;
+
+    public ListNode addTwoNumbers(ListNode num1, ListNode num2) {
+        int carry = 0;
+
+        while (num1 != null || num2 != null || carry == 1) {
+            int digit1 = num1 == null ? 0 : num1.val;
+            int digit2 = num2 == null ? 0 : num2.val;
+
+            int sum = digit1 + digit2 + carry;
+            carry = sum / 10;
+            append(new ListNode(sum % 10));
+
+            num1 = num1 == null ? null : num1.next;
+            num2 = num2 == null ? null : num2.next;
+        }
+
+        return head;
+    }
+
+    private void append(ListNode newNode) {
+        if (head == null) {
+            head = tail = newNode;
+        } else {
+            tail.next = newNode;
+            tail = newNode;
+        }
+    }
+}
