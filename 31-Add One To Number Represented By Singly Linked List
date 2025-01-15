@@ -1,0 +1,46 @@
+class Solution {
+    public Node addOne(Node num) {
+        if (num == null) {
+            return new Node(1); // If the number is empty, return a new node with value 1
+        }
+
+        // Step 1: Reverse the singly linked list to simplify addition from right to left
+        Node reversedNumber = reverse(num);
+
+        Node num1 = reversedNumber; // Pointer to traverse the reversed singly linked list
+        Node prevNode = null; // To keep track of the last node (needed for adding a new node in case of overflow)
+        int carry = 1; // Start with carry 1 to simulate adding 1
+
+        // Step 2: Add 1 and handle carry through the singly linked list
+        while (num1 != null && carry == 1) {
+            int sum = num1.data + carry; // Add carry to the current node's value
+            carry = sum / 10; // Calculate the carry for the next node
+            num1.data = sum % 10; // Update the current node's data with the digit (sum's unit place value)
+            prevNode = num1; // Update prevNode to the current node
+            num1 = num1.next; // Move to the next node in the list
+        }
+
+        // If carry is still 1, it means the number consisted of all 9's like 999...
+        // In this case, we add a new node at the end with the carry value
+        if (carry == 1) {
+            prevNode.next = new Node(carry);
+        }
+
+        // Step 3: Reverse the singly linked list again to restore the original order
+        return reverse(reversedNumber); // Return the resultant number after reversing back
+    }
+
+    private Node reverse(Node head) {
+        Node prevNode = null;
+        Node num1 = head;
+
+        while (num1 != null) {
+            Node nextNode = num1.next; // Save the next node
+            num1.next = prevNode; // Reverse the link
+            prevNode = num1; // Move prevNode forward
+            num1 = nextNode; // Move num1 forward
+        }
+
+        return prevNode; // Return prevNode, which now points to the head of the reversed list
+    }
+}
