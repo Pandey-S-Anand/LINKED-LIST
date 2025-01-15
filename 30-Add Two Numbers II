@@ -1,0 +1,139 @@
+/**
+ * Definition for singly-linked list.
+ * public class ListNode {
+ * int val;
+ * ListNode next;
+ * ListNode() {}
+ * ListNode(int val) { this.val = val; }
+ * ListNode(int val, ListNode next) { this.val = val; this.next = next; }
+ * }
+ */
+
+//Bruteforce approach
+
+/**
+ * Example: Adding two numbers represented as singly linked lists
+ * 
+ * Input:
+ * l1: 7 -> 2 -> 4 -> 3 (represents the number 7243)
+ * l2: 5 -> 6 -> 4     (represents the number 564)
+ * 
+ * Process:
+ * 1. Reverse both singly linked lists.
+ *    Reverse l1: 3 -> 4 -> 2 -> 7
+ *    Reverse l2: 4 -> 6 -> 5
+ * 
+ * 2. Add reversed numbers digit by digit using carry:
+ *    - 3 + 4 + 0 = 7  (carry = 0) -> Insert 7 at the front of the result list
+ *    - 4 + 6 + 0 = 10 (carry = 1) -> Insert 0 at the front of the result list
+ *    - 2 + 5 + 1 = 8  (carry = 0) -> Insert 8 at the front of the result list
+ *    - 7 + 0 + 0 = 7  (carry = 0) -> Insert 7 at the front of the result list
+ * 
+ * Result after addition (already in correct order due to front insertion):
+ * 7 -> 8 -> 0 -> 7 (represents the number 7807)
+ * 
+ * Output:
+ * The resultant singly linked list is 7 -> 8 -> 0 -> 7, representing the sum 7807.
+ */
+ 
+class Solution {
+    private ListNode head;
+    private ListNode tail;
+
+    public ListNode addTwoNumbers(ListNode l1, ListNode l2) {
+        ListNode head1 = reverseList(l1); // Reverse the first singly linked list
+        ListNode head2 = reverseList(l2); // Reverse the second singly linked list
+        return addReversedNumbers(head1, head2); // Add reversed numbers and reverse the result
+    }
+
+    private ListNode addReversedNumbers(ListNode num1, ListNode num2) {
+        int carry = 0;
+
+        while (num1 != null || num2 != null || carry == 1) {
+            int digit1 = num1 == null ? 0 : num1.val;
+            int digit2 = num2 == null ? 0 : num2.val;
+
+            int sum = digit1 + digit2 + carry;
+            carry = sum / 10;
+            insertAtFront(new ListNode(sum % 10));
+
+            num1 = num1 == null ? null : num1.next;
+            num2 = num2 == null ? null : num2.next;
+        }
+
+        return head;
+    }
+
+    private void insertAtFront(ListNode newNode) {
+        newNode.next = head; // Link the new node to the current head
+        head = newNode; // Update the head pointer
+    }
+
+    private ListNode reverseList(ListNode head) {
+        if (head == null) {
+            return null;
+        }
+
+        ListNode currentNode = head;
+        ListNode prevNode = null;
+
+        while (currentNode != null) {
+            ListNode nextNode = currentNode.next; // Save the next node
+            currentNode.next = prevNode; // Reverse the link
+            prevNode = currentNode; // Move prevNode forward
+            currentNode = nextNode; // Move currentNode forward
+        }
+
+        return prevNode; // Return prevNode, which now points to the head of the reversed list
+    }
+}
+
+
+
+//Optimal approach
+
+/*
+ * This approach uses stacks to reverse the digits of both input singly linked lists.
+ * By pushing digits onto the stacks, we simulate the reversal. Then, by popping digits 
+ * from the stacks, we add them starting from the least significant digit.
+ */
+
+class Solution {
+    private ListNode head; // Head pointer for the resultant singly linked list
+
+    public ListNode addTwoNumbers(ListNode num1, ListNode num2) {
+        Stack<Integer> num1Stack = new Stack<>(); // Stack to store digits of the first number
+        Stack<Integer> num2Stack = new Stack<>(); // Stack to store digits of the second number
+
+        // Push all digits from the first singly linked list into the stack
+        while (num1 != null) {
+            num1Stack.push(num1.val);
+            num1 = num1.next;
+        }
+
+        // Push all digits from the second singly linked list into the stack
+        while (num2 != null) {
+            num2Stack.push(num2.val);
+            num2 = num2.next;
+        }
+
+        int carry = 0; // Initialize carry to 0
+
+        // Process digits from both stacks and the carry
+        while (!num1Stack.isEmpty() || !num2Stack.isEmpty() || carry > 0) {
+            int digit1 = num1Stack.isEmpty() ? 0 : num1Stack.pop(); // Get digit from num1Stack or 0 if empty
+            int digit2 = num2Stack.isEmpty() ? 0 : num2Stack.pop(); // Get digit from num2Stack or 0 if empty
+
+            int sum = digit1 + digit2 + carry; // Compute the sum
+            carry = sum / 10; // Update the carry
+            insertAtFront(new ListNode(sum % 10)); // Insert the current digit at the front of the resultant singly linked list
+        }
+
+        return head; // Return the head of the resultant singly linked list
+    }
+
+    private void insertAtFront(ListNode newNode) {
+        newNode.next = head;
+        head = newNode;
+    }
+}
