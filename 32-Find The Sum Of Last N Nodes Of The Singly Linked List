@@ -1,0 +1,55 @@
+//Bruteforce Approach
+
+
+
+//Optimal approach
+
+class Solution {
+    public int sumOfLastN_Nodes(Node head, int n) {
+        // Step 1: Find the Nth node from the end of the singly linked list
+        Node nthNode = getNthNodeFromEnd(head, n);
+        // Step 2: Calculate the sum of all nodes from the Nth node to the end
+        return sumOfLastNNodes(nthNode);
+    }
+
+    private Node getNthNodeFromEnd(Node head, int n) {
+        // Special case: If the singly linked list is empty, return null
+        if (head == null) {
+            return null;
+        }
+
+        // Initialize two pointers, `fast` and `slow`, both starting at the head
+        Node fast = head;
+        Node slow = head;
+
+        // Move the `fast` pointer n steps ahead
+        for (int i = 1; i <= n; i++) {
+            fast = fast.next;
+        }
+
+        // If `fast` becomes null after moving n steps, it means the Nth node from the end is the head node itself
+        if (fast == null) {
+            return head; // Return the head node
+        }
+
+        // Move both `fast` and `slow` pointers until `fast` reaches the end
+        // When `fast` becomes null, the `slow` will point to the Nth node from the end
+        while (fast != null) {
+            fast = fast.next;
+            slow = slow.next;
+        }
+
+        // Return the Nth node from the end
+        return slow;
+    }
+
+    private int sumOfLastNNodes(Node node) {
+        int sum = 0;
+        while (node != null) {
+            sum += node.data;
+            node = node.next;
+        }
+
+        return sum;
+    }
+}
