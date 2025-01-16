@@ -1,0 +1,133 @@
+/**
+ * Definition for singly-linked list.
+ * public class ListNode {
+ * int val;
+ * ListNode next;
+ * ListNode() {}
+ * ListNode(int val) { this.val = val; }
+ * ListNode(int val, ListNode next) { this.val = val; this.next = next; }
+ * }
+ */
+
+//Naive implementation
+ 
+class Solution {
+    public ListNode reverseKGroup(ListNode head, int k) {
+        if (head == null || k == 1) { // If the singly linked list is empty or k is 1, no need to reverse the nodes. 
+            return head;
+        }
+
+        // Step 1: Reverse the first k-group separately
+        ListNode firstKthNode = findKthNode(head, k);
+        if (firstKthNode == null) {
+            return head; // If not enough nodes, return as is.
+        }
+
+        ListNode nextGroupStart = firstKthNode.next;
+        firstKthNode.next = null; // Temporarily break the link
+        ListNode newHead = reverse(head); // Reverse first k nodes
+
+        // Step 2: Process remaining groups
+        ListNode prevGroupEnd = head; // The last node/tail of reversed first group
+        ListNode currentNode = nextGroupStart;
+
+        while (currentNode != null) {
+            ListNode kthNode = findKthNode(currentNode, k);
+            if (kthNode == null) {
+                break; // Not enough nodes left, stop
+            }
+
+            nextGroupStart = kthNode.next;
+            kthNode.next = null; // Temporarily break the link
+            ListNode reversedHead = reverse(currentNode);
+
+            prevGroupEnd.next = reversedHead; // Connect previous group to reversed list
+            prevGroupEnd = currentNode; // Update prevGroupEnd to the last node of reversed group
+            currentNode = nextGroupStart; // Move to the next group
+        }
+
+        prevGroupEnd.next = currentNode; // Attach remaining nodes if any
+        return newHead;
+    }
+
+    private ListNode findKthNode(ListNode head, int k) {
+        int count = 1;
+        while (head != null && count < k) {
+            head = head.next;
+            count++;
+        }
+        return head; // Return the k-th node (or null if not enough nodes)
+    }
+
+    private ListNode reverse(ListNode head) {
+        ListNode prevNode = null, currentNode = head;
+        while (currentNode != null) {
+            ListNode nextNode = currentNode.next;
+            currentNode.next = prevNode;
+            prevNode = currentNode;
+            currentNode = nextNode;
+        }
+        return prevNode; // New head of reversed singly linked list
+    }
+}
+
+
+//Concise implementation
+
+class Solution {
+    public ListNode reverseKGroup(ListNode head, int k) {
+        if (head == null || k == 1) {
+            return head;
+        }
+
+        ListNode prevGroupEnd = null;
+        ListNode currentNode = head;
+
+        while (currentNode != null) {
+            ListNode kthNode = findKthNode(currentNode, k);
+            if (kthNode == null) {
+                break;
+            }
+
+            ListNode nextGroupStart = kthNode.next;
+            kthNode.next = null;
+            ListNode reversedHead = reverse(currentNode);
+
+            // If it's the first group, the reversed head becomes the new head of the list
+            if (prevGroupEnd == null) {
+                head = reversedHead;
+            }
+            
+            // For the second group and onwards, connect the previous group's last node to the head of the reversed current group
+            if (prevGroupEnd != null) {
+                prevGroupEnd.next = reversedHead;
+            }
+
+            prevGroupEnd = currentNode;
+            currentNode = nextGroupStart;
+        }
+
+        prevGroupEnd.next = currentNode;
+        return head;
+    }
+
+    private ListNode findKthNode(ListNode head, int k) {
+        int count = 1;
+        while (head != null && count < k) {
+            head = head.next;
+            count++;
+        }
+        return head;
+    }
+
+    private ListNode reverse(ListNode head) {
+        ListNode prevNode = null, currentNode = head;
+        while (currentNode != null) {
+            ListNode nextNode = currentNode.next;
+            currentNode.next = prevNode;
+            prevNode = currentNode;
+            currentNode = nextNode;
+        }
+        return prevNode;
+    }
+}
