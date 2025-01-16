@@ -1,5 +1,58 @@
 //Bruteforce Approach
 
+class Solution {
+    public int sumOfLastN_Nodes(Node head, int n) {
+        // Step 1: Calculate the total size of the singly linked list
+        int targetIndex = getSize(head) - n;
+
+        // Step 2: Find the Nth node from the end by calculating its index from the start
+        Node nthNode = getNthNode(head, targetIndex);
+
+        // Step 3: Calculate the sum of all nodes from the Nth node to the end
+        return sumOfLastNNodes(nthNode);
+    }
+
+    private int getSize(Node head) {
+        Node slow = head;
+        Node fast = head;
+        int size = 0;
+
+        while (fast != null && fast.next != null) {
+            slow = slow.next;
+            fast = fast.next.next;
+            size += 2;
+        }
+
+        if (fast != null) {
+            size++;
+        }
+
+        return size;
+    }
+
+    private Node getNthNode(Node head, int targetIndex) {
+        Node currentNode = head;
+
+        while (targetIndex > 0) {
+            currentNode = currentNode.next;
+            targetIndex--;
+        }
+
+        return currentNode;
+    }
+
+    private int sumOfLastNNodes(Node node) {
+        int sum = 0;
+
+        while (node != null) {
+            sum += node.data;
+            node = node.next;
+        }
+
+        return sum;
+    }
+}
+
 
 
 //Optimal approach
