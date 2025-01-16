@@ -1,0 +1,111 @@
+//Naive implementation
+
+class Solution {
+    public static ArrayList<ArrayList<Integer>> findPairsWithGivenSum(int target, Node head) {
+        ArrayList<ArrayList<Integer>> pairs = new ArrayList<>();
+
+        // Edge case: If the doubly linked list is empty or has only one node, no pairs can be formed
+        if (head == null || head.next == null) {
+            return pairs;
+        }
+
+        // Get the tail of the doubly linked list
+        Node tail = getTail(head);
+
+        // Initialize two pointers: start pointing to the head and end pointing to the tail
+        Node start = head;
+        Node end = tail;
+
+        // Loop until the two pointers meet or cross each other
+        // `start != end` ensures we don't consider the same node for even-sized lists
+        // `end.next != start` ensures we don't cross pointers in odd-sized lists
+        while (start != end && end.next != start) {
+            int sum = start.data + end.data; // Calculate the sum of the values at start and end
+
+            if (sum == target) {
+                // If the sum matches the target, add the pair to the result list
+                pairs.add(new ArrayList<>(Arrays.asList(start.data, end.data)));
+
+                // Move both pointers inward
+                start = start.next;
+                end = end.prev;
+            } else if (sum < target) {
+                // If the sum is less than the target, move the start pointer forward
+                start = start.next;
+            } else {
+                // If the sum is greater than the target, move the end pointer backward
+                end = end.prev;
+            }
+        }
+
+        // Return the list of pairs
+        return pairs;
+    }
+
+    private static Node getTail(Node head) {
+        Node currentNode = head;
+
+        // Traverse the list until the last node
+        while (currentNode.next != null) {
+            currentNode = currentNode.next;
+        }
+
+        return currentNode; // Return the tail node
+    }
+}
+
+
+//Optimal implementation
+
+class Solution {
+    public static ArrayList<ArrayList<Integer>> findPairsWithGivenSum(int target, Node head) {
+        ArrayList<ArrayList<Integer>> pairs = new ArrayList<>();
+
+        if (head == null || head.next == null) {
+            return pairs;
+        }
+
+        Node tail = getTail(head);
+
+        Node start = head;
+        Node end = tail;
+
+        while (start != end && end.next != start) {
+            int sum = start.data + end.data;
+
+            if (sum == target) {
+                pairs.add(new ArrayList<>(Arrays.asList(start.data, end.data)));
+
+                start = start.next;
+                end = end.prev;
+            } else if (sum < target) {
+                start = start.next;
+            } else {
+                end = end.prev;
+            }
+        }
+
+        return pairs;
+    }
+
+    private static Node getTail(Node head) {
+        Node slow = head; // Pointer to traverse the list at normal speed
+        Node fast = head; // Pointer to traverse the list at twice the speed
+        Node fastNext = null; // To track the last node when the list size is even
+
+        // Traverse the list until `fast` reaches the end
+        while (fast != null && fast.next != null) {
+            slow = slow.next; // Move slow pointer one step
+            fastNext = fast.next; // Keep track of fast.next
+            fast = fast.next.next; // Move fast pointer two steps
+        }
+
+        // If the doubly linked list size is odd, fast will point to the last node
+        if (fast != null) {
+            return fast; // Return the last node
+        }
+
+        // If the doubly linked list size is even, fastNext will point to the last node
+        return fastNext;
+    }
+}
