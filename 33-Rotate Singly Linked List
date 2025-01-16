@@ -54,8 +54,7 @@ class Solution {
          * - `currentNode` points to the last node of the singly linked list
          * - `prevNode` points to the second-to-last node of the singly linked list
          */
-        prevNode.next = null; // Now the second-to-last node becomes the tail, so its next pointer is set to
-                              // null
+        prevNode.next = null; // Now the second-to-last node becomes the tail, so its next pointer is set to null
         currentNode.next = head; // Move the last node to the front of the list
         head = currentNode; // Update head to point to the new first node (formerly the last node)
 
