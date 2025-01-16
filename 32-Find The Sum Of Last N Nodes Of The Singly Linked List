@@ -13,12 +13,10 @@ class Solution {
     }
 
     private int getSize(Node head) {
-        Node slow = head;
         Node fast = head;
         int size = 0;
 
         while (fast != null && fast.next != null) {
-            slow = slow.next;
             fast = fast.next.next;
             size += 2;
         }
