@@ -7,14 +7,11 @@ class Solution {
             return head;
         }
 
-        DLLNode currentNode = head;
         // Find the tail of the doubly linked list
-        while (currentNode.next != null) {
-            currentNode = currentNode.next;
-        }
+        DLLNode tail = getTail(head);
 
         DLLNode start = head;
-        DLLNode end = currentNode;
+        DLLNode end = tail;
         /*
          * - For odd-sized lists: Until `start` equals `end`.
          * - For even-sized lists: Until `start` and `end` pointers cross each other.
@@ -28,12 +25,23 @@ class Solution {
         return head;
     }
 
+    private DLLNode getTail(DLLNode head) {
+        DLLNode currentNode = head;
+
+        while (currentNode.next != null) {
+            currentNode = currentNode.next;
+        }
+
+        return currentNode;
+    }
+
     private void swap(DLLNode start, DLLNode end) {
         int temp = start.data;
         start.data = end.data;
         end.data = temp;
     }
 }
+
 
 //Optimal Approach
 
