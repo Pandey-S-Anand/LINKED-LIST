@@ -1,0 +1,86 @@
+/**
+ * Definition for singly-linked list.
+ * public class ListNode {
+ * int val;
+ * ListNode next;
+ * ListNode() {}
+ * ListNode(int val) { this.val = val; }
+ * ListNode(int val, ListNode next) { this.val = val; this.next = next; }
+ * }
+ */
+
+//Bruteforce approach
+ 
+class Solution {
+    public ListNode rotateRight(ListNode head, int k) {
+        // Handle edge cases: Empty or single element singly linked list
+        if (head == null || head.next == null) {
+            return head;
+        }
+
+        // Get the size of the singly linked list
+        int size = getSize(head);
+
+        /*
+         * Adjust k to ensure it is within the bounds of the singly linked list size.
+         * This step is crucial because rotating the list by a number larger than its size
+         * results in repetitive rotations. By taking k modulo the list size, we ensure
+         * that the effective number of rotations is within the range [0, size - 1],
+         * eliminating unnecessary full rotations and optimizing the solution.
+         */
+        k = k % size;
+
+        // Perform the rotation by 1 k times
+        for (int count = 1; count <= k; count++) {
+            // Perform right rotation by 1 position on the singly linked list and get the new head
+            head = rightRotateBy1(head);
+        }
+
+        return head;
+    }
+
+    private ListNode rightRotateBy1(ListNode head) {
+        ListNode prevNode = null;
+        ListNode currentNode = head;
+
+        // Traverse to the last node of the singly linked list
+        while (currentNode.next != null) {
+            prevNode = currentNode;
+            currentNode = currentNode.next;
+        }
+
+        /*
+         * At the end of the loop:
+         * - `currentNode` points to the last node of the singly linked list
+         * - `prevNode` points to the second-to-last node of the singly linked list
+         */
+        prevNode.next = null; // Now the second-to-last node becomes the tail, so its next pointer is set to
+                              // null
+        currentNode.next = head; // Move the last node to the front of the list
+        head = currentNode; // Update head to point to the new first node (formerly the last node)
+
+        return head; // Return the updated head
+    }
+
+    private int getSize(ListNode head) {
+        ListNode slow = head;
+        ListNode fast = head;
+        int size = 0;
+
+        while (fast != null && fast.next != null) {
+            slow = slow.next;
+            fast = fast.next.next;
+            size += 2;
+        }
+
+        if (fast != null) {
+            size++;
+        }
+
+        return size;
+    }
+}
+
+
+//Optimal Approach
+
