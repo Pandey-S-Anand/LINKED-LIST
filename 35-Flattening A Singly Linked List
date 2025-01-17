@@ -1,0 +1,91 @@
+//Bruteforce approach
+
+class Solution {
+    Node flatten(Node root) {
+        Node currentNode = root;
+        List<Integer> nodeValues = new ArrayList<>();
+
+        // Collect all values from the multilevel singly linked list
+        while (currentNode != null) {
+            Node currentBottomNode = currentNode;
+            while (currentBottomNode != null) {
+                nodeValues.add(currentBottomNode.data);
+                currentBoottomNode = currentBottomNode.bottom;
+            }
+            currentNode = currentNode.next;
+        }
+
+        Collections.sort(nodeValues);
+        // Create a new flattened singly linked list using the bottom pointer
+        SinglyLinkedList singlyLinkedList = new SinglyLinkedList();
+
+        for (int nodeValue : nodeValues) {
+            singlyLinkedList.append(nodeValue);
+        }
+
+        return singlyLinkedList.getHead();
+    }
+}
+
+class SinglyLinkedList {
+    private Node head;
+    private Node tail;
+
+    public Node getHead() {
+        return this.head;
+    }
+
+    public void append(int data) {
+        Node node = new Node(data);
+        if (head == null) {
+            head = tail = node;
+        } else {
+            tail.bottom = node;
+            tail = node;
+        }
+    }
+}
+
+
+//Improved approach
+
+class Solution {
+    private Node head;
+    private Node tail;
+
+    Node flatten(Node root) {
+        Node currentNode = root;
+        List<Integer> nodeValues = new ArrayList<>();
+
+        while (currentNode != null) {
+            Node currentBottomNode = currentNode;
+            while (currentBottomNode != null) {
+                nodeValues.add(currentBottomNode.data);
+                currentBottomNode = currentBottomNode.bottom;
+            }
+            currentNode = currentNode.next;
+        }
+
+        Collections.sort(nodeValues);
+
+        for (int nodeValue : nodeValues) {
+            append(nodeValue);
+        }
+
+        return head;
+    }
+
+    private void append(int data) {
+        Node node = new Node(data);
+        if (head == null) {
+            head = tail = node;
+        } else {
+            tail.bottom = node;
+            tail = node;
+        }
+    }
+}
+
+
+//Optimal approach
+
