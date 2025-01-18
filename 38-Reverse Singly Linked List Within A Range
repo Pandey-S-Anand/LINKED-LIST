@@ -1,5 +1,3 @@
-//Naive Approach
-
 class Solution {
     public ListNode reverseBetween(ListNode head, int left, int right) {
         // If the singly linked list is empty, or only one element exists, or left == right, return the head as no reversal is needed
@@ -55,7 +53,7 @@ class Solution {
                 leftNode = currentNode;
             }
 
-            currentNode = currentNode.next; // Move to the next node
+            currentNode = currentNode.next;
         }
 
         // Return the nodes: left node's previous, left node, and right node
@@ -76,7 +74,3 @@ class Solution {
         return prevNode;
     }
 }
-
-
-//Optimal approach
-
