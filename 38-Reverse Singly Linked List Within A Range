@@ -1,3 +1,16 @@
+/**
+ * Definition for singly-linked list.
+ * public class ListNode {
+ * int val;
+ * ListNode next;
+ * ListNode() {}
+ * ListNode(int val) { this.val = val; }
+ * ListNode(int val, ListNode next) { this.val = val; this.next = next; }
+ * }
+ */
+
+//Naive approach
+
 class Solution {
     public ListNode reverseBetween(ListNode head, int left, int right) {
         // If the singly linked list is empty, or only one element exists, or left == right, return the head as no reversal is needed
@@ -72,5 +85,74 @@ class Solution {
         }
 
         return prevNode;
+    }
+}
+
+
+//Optimal approach
+
+class Solution {
+    public ListNode reverseBetween(ListNode head, int left, int right) {
+        if (head == null || head.next == null || left == right) {
+            return head;
+        }
+
+        ListNode[] nodes = findLeftNodeAndPrecedingNode(head, left);
+        ListNode leftNodePrev = nodes[0];
+        ListNode leftNode = nodes[1];
+
+        if (leftNodePrev != null) {
+            leftNodePrev.next = null;
+        }
+
+        // Reverse the section of the singly linked list from the left node to the right node
+        ListNode prevNode = null;
+        ListNode currentNode = leftNode;
+
+        for (int count = left; count <= right; count++) {
+            ListNode nextNode = currentNode.next;
+            currentNode.next = prevNode;
+            prevNode = currentNode;
+            currentNode = nextNode;
+        }
+
+        // prevNode now points to the new head of the reversed section (which was initially the right node)
+        if (leftNodePrev != null) {
+            leftNodePrev.next = prevNode; // Connect the node before the left node to the head of the reversed section
+        }
+
+        // CurrentNode now points to the first node after the right node
+        leftNode.next = currentNode;
+
+        // If the reversal starts at the head of the singly linked list (left == 1), return the new head
+        if (left == 1) {
+            return prevNode; // prevNode is now the new head after reversal
+        }
+
+        return head; // Otherwise, return the original head of the singly linked list
+    }
+
+    private ListNode[] findLeftNodeAndPrecedingNode(ListNode head, int left) {
+        ListNode currentNode = head;
+        ListNode prevNode = null;
+
+        for (int count = 1; count < left; count++) {
+            prevNode = currentNode;
+            currentNode = currentNode.next;
+        }
+
+        return new ListNode[] { prevNode, currentNode };
+    }
+
+    private ListNode[] reverse(ListNode head, int left) {
+        ListNode currentNode = head;
+        ListNode prevNode = null;
+
+        for (int count = 1; count < left; count++) {
+            prevNode = currentNode;
+            currentNode = currentNode.next;
+        }
+
+        return new ListNode[] { prevNode, currentNode };
     }
 }
