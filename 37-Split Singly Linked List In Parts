@@ -1,0 +1,73 @@
+/**
+ * Definition for singly-linked list.
+ * public class ListNode {
+ *     int val;
+ *     ListNode next;
+ *     ListNode() {}
+ *     ListNode(int val) { this.val = val; }
+ *     ListNode(int val, ListNode next) { this.val = val; this.next = next; }
+ * }
+ */
+
+/* 
+CRUX:
+
+- The extra nodes should be distributed in the initial parts only.
+- The reason we are assigning only one extra node per part is because the question specifies that each of the k parts should not have a size difference of more than one.
+- The nodes should maintain the order of appearance in the original list.
+*/
+
+class Solution {
+    public ListNode[] splitListToParts(ListNode head, int k) {
+        ListNode[] splits = new ListNode[k]; // Array to store the k parts
+        ListNode current = head; // Current node being processed
+        ListNode previous = null; // Tail node in each part
+        int index = 0; // Index to store each part in the splits array
+        int totalSize = getSize(head); // Get the total size of the linked list
+
+        int nodesPerPart = totalSize / k; // Number of nodes each part should have
+        int extraNodes = totalSize % k; // Number of extra nodes to distribute
+
+        // Iterate through the singly linked list and split it into parts
+        while (current != null) {
+            splits[index++] = head; // Assign the head of the current part to the result array
+
+            // Traverse to the end of the current part
+            for (int count = 1; count <= nodesPerPart; count++) {
+                previous = current;
+                current = current.next;
+            }
+
+            // If there are extra nodes, assign one extra node to the current part
+            if (extraNodes > 0) {
+                previous = current;
+                current = current.next;
+                extraNodes--;
+            }
+
+            // Disconnect the current part from the next part
+            previous.next = null;
+
+            // Move the head pointer to the start of next part
+            head = current;
+        }
+
+        return splits;
+    }
+
+    private int getSize(ListNode head) {
+        ListNode fast = head;
+        int totalSize = 0;
+
+        while (fast != null && fast.next != null) {
+            fast = fast.next.next;
+            totalSize += 2;
+        }
+
+        if (fast != null) {
+            totalSize++;
+        }
+
+        return totalSize;
+    }
+}
