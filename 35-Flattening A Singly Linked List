@@ -87,5 +87,61 @@ class Solution {
 }
 
 
+
 //Optimal approach
 
+class Solution {
+    private Node flattenedHead; // Head of the final merged singly linked list
+    private Node flattenedTail; // Tail of the final merged singly linked list
+
+    Node flatten(Node head) {
+        if (head == null || head.next == null) {
+            return head; // Base case: return if there is only one singly linked list or none
+        }
+
+        // Recursively flatten the next singly linked lists first
+        Node nextFlattenedHead = flatten(head.next);
+
+        // Merge the current singly linked list with the already flattened next singly linked list
+        return merge(head, nextFlattenedHead);
+    }
+
+    private Node merge(Node list1, Node list2) {
+        flattenedHead = flattenedTail = null;
+        Node currentNode1 = list1;
+        Node currentNode2 = list2;
+
+        // Merge two sorted bottom-linked singly linked lists
+        while (currentNode1 != null && currentNode2 != null) {
+            if (currentNode1.data <= currentNode2.data) {
+                appendToFlattenedSinglyLinkedList(currentNode1);
+                currentNode1 = currentNode1.bottom;
+            } else {
+                appendToFlattenedSinglyLinkedList(currentNode2);
+                currentNode2 = currentNode2.bottom;
+            }
+        }
+
+        // Append any remaining nodes in the singly linked lists
+        if (currentNode1 != null) {
+            appendToFlattenedSinglyLinkedList(currentNode1);
+            currentNode1 = currentNode1.bottom;
+        }
+
+        if (currentNode2 != null) {
+            appendToFlattenedSinglyLinkedList(currentNode2);
+            currentNode2 = currentNode2.bottom;
+        }
+
+        return flattenedHead; // Return the new head of the merged bottom-linked singly linked list
+    }
+
+    private void appendToFlattenedSinglyLinkedList(Node node) {
+        if (flattenedHead == null) {
+            flattenedHead = flattenedTail = node; // Initialize the singly linked list
+        } else {
+            flattenedTail.bottom = node; // Append at the bottom
+            flattenedTail = flattenedTail.bottom; // Move tail forward
+        }
+    }
+}
