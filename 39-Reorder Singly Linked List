@@ -1,0 +1,222 @@
+/**
+ * Definition for singly-linked list.
+ * public class ListNode {
+ * int val;
+ * ListNode next;
+ * ListNode() {}
+ * ListNode(int val) { this.val = val; }
+ * ListNode(int val, ListNode next) { this.val = val; this.next = next; }
+ * }
+ */
+
+//Bruteforce approach
+
+class Solution {
+    public void reorderList(ListNode head) {
+        if (head.next == null) {
+            return;
+        }
+
+        // Step 1: Collect all values from the singly linked list
+        List<Integer> nodeValues = collectValues(head);
+
+        // Step 2: Rearrange the collected values to follow the pattern: first, last, second , second last, and so on
+        rearrange(nodeValues);
+
+        // Step 3: Assign the rearranged values back to the singly linked list
+        assignValues(head, nodeValues);
+    }
+
+    private List<Integer> collectValues(ListNode head) {
+        List<Integer> nodeValues = new ArrayList<>();
+        ListNode currentNode = head;
+
+        while (currentNode != null) {
+            nodeValues.add(currentNode.val);
+            currentNode = currentNode.next;
+        }
+
+        return nodeValues;
+    }
+
+    private void rearrange(List<Integer> arr) {
+        for (int i = 1; i < arr.size() - 1; i += 2) {
+            int temp = arr.get(i);
+            arr.set(i, arr.get(arr.size() - 1));
+
+            for (int j = arr.size() - 2; j > i; j--) {
+                arr.set(j + 1, arr.get(j));
+            }
+
+            arr.set(i + 1, temp);
+        }
+    }
+
+    private void assignValues(ListNode head, List<Integer> values) {
+        ListNode current = head;
+
+        for (int value : values) {
+            current.val = value;
+            current = current.next;
+        }
+    }
+}
+
+//Aliter
+
+class Solution {
+    public void reorderList(ListNode head) {
+        if (head.next == null) {
+            return;
+        }
+
+        List<Integer> nodeValues = collectValues(head);
+        List<Integer> rearrangedNodeValues = rearrange(nodeValues);
+        assignValues(head, rearrangedNodeValues);
+    }
+
+    private List<Integer> collectValues(ListNode head) {
+        List<Integer> nodeValues = new ArrayList<>();
+        ListNode currentNode = head;
+
+        while (currentNode != null) {
+            nodeValues.add(currentNode.val);
+            currentNode = currentNode.next;
+        }
+
+        return nodeValues;
+    }
+
+    private List<Integer> rearrange(List<Integer> arr) {
+        List<Integer> rearrangedArray = new ArrayList<>();
+        int start = 0, end = arr.size() - 1;
+
+        while (start <= end) {
+            rearrangedArray.add(arr.get(start));
+            if (start != end) {
+                rearrangedArray.add(arr.get(end));
+            }
+            start++;
+            end--;
+        }
+
+        return rearrangedArray;
+    }
+
+    private void assignValues(ListNode head, List<Integer> values) {
+        ListNode current = head;
+
+        for (int value : values) {
+            current.val = value;
+            current = current.next;
+        }
+    }
+}
+
+
+// Optimal approach
+
+class Solution {
+    public void reorderList(ListNode head) {
+        // Step 1: Find the middle of the singly linked list
+        ListNode middle = getMiddle(head);
+
+        // Step 2: Split the singly linked list into two halves
+        ListNode secondHalfHead = middle.next;
+        middle.next = null;
+
+        // Step 3: Reverse the second half of the singly linked list
+        ListNode reversedHead = reverse(secondHalfHead);
+
+        // Step 4: Merge the two halves, alternating nodes
+        merge(head, reversedHead);
+    }
+
+    private ListNode getMiddle(ListNode head) {
+        ListNode slow = head;
+        ListNode fast = head.next;
+
+        while (fast != null && fast.next != null) {
+            slow = slow.next;
+            fast = fast.next.next;
+        }
+        /*
+         * In case of an even-sized singly linked list, the slow pointer will point to the first middle node,
+         * and in case of an odd-sized singly linked list, it will point to the exact middle node.
+         */
+        return slow;
+    }
+
+    private ListNode reverse(ListNode head) {
+        ListNode prevNode = null;
+        ListNode currentNode = head;
+
+        while (currentNode != null) {
+            ListNode nextNode = currentNode.next;
+            currentNode.next = prevNode;
+            prevNode = currentNode;
+            currentNode = nextNode;
+        }
+
+        return prevNode; // Return the new head (previously the last node)
+    }
+
+    private void merge(ListNode node1, ListNode node2) {
+        while (node1 != null && node2 != null) {
+            // Save the next node of node1 to avoid losing the reference
+            ListNode node1Next = node1.next;
+
+            // Save the next node of node2 to avoid losing the reference
+            ListNode node2Next = node2.next;
+
+            // Set node1's next pointer to node2, effectively linking node2 after node1
+            node1.next = node2;
+            
+            // Set node2's next pointer to the node following node1, connecting node2 to the next node in node1's list
+            node2.next = node1Next;
+
+            // Move node1 to its next node (which was saved in node1Next)
+            node1 = node1Next;
+
+            // Move node2 to its next node (which was saved in node2Next)
+            node2 = node2Next;
+        }
+    }
+}
+
+// Aliter
+
+class Solution {
+    public void reorderList(ListNode head) {
+        Deque<ListNode> nodeStack = new ArrayDeque<>();
+        ListNode currentNode = head;
+
+        // Traverse the singly linked list and push all nodes into the stack
+        while (currentNode != null) {
+            nodeStack.push(currentNode);
+            currentNode = currentNode.next;
+        }
+
+        // Get the size of the singly linked list (number of nodes)
+        int size = nodeStack.size();
+        currentNode = head;
+
+        // Reorder the singly linked list by alternating nodes from the front and back
+        for (int count = 1; count <= size / 2; count++) {
+            ListNode nextNode = currentNode.next;
+            ListNode topNode = nodeStack.pop();
+            // Link the current node to the node popped from the stack (alternating front and back nodes)
+            currentNode.next = topNode;
+            // Link the node popped from the stack to the next node in the original singly linked list
+            topNode.next = nextNode;
+            // Move currentNode to the next node in the original singly linked list
+            currentNode = nextNode;
+        }
+        /*
+         * At this point, currentNode always points to itself, creating a cycle.
+         * We make currentNode.next = null to ensure the last node becomes the tail
+         * and avoid forming a cycle in the singly linked list.
+         */
+        currentNode.next = null;
+    }
+}
