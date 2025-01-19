@@ -1,0 +1,146 @@
+/**
+ * Definition for singly linked list.
+ * public class ListNode {
+ * int val;
+ * ListNode next;
+ * ListNode() {}
+ * ListNode(int val) { this.val = val; }
+ * ListNode(int val, ListNode next) { this.val = val; this.next = next; }
+ * }
+ */
+
+
+//Bruteforce approach
+
+class Solution {
+    public ListNode mergeKLists(ListNode[] lists) {
+        List<Integer> values = extractValues(lists); // Extract all node values from the lists
+        Collections.sort(values); // Sort the collected node values
+        return buildSortedSinglyLinkedList(values); // Construct the sorted singly linked list
+    }
+
+    private List<Integer> extractValues(ListNode[] lists) {
+        List<Integer> values = new ArrayList<>();
+
+        for (ListNode head : lists) {
+            ListNode currentNode = head;
+
+            while (currentNode != null) {
+                values.add(currentNode.val);
+                currentNode = currentNode.next;
+            }
+        }
+
+        return values;
+    }
+
+    private ListNode buildSortedSinglyLinkedList(List<Integer> sortedValues) {
+        SinglyLinkedList singlyLinkedList = new SinglyLinkedList();
+
+        for (int value : sortedValues) {
+            singlyLinkedList.append(value);
+        }
+
+        return singlyLinkedList.getHead();
+    }
+}
+
+class SinglyLinkedList {
+    private ListNode head;
+    private ListNode tail;
+
+    public ListNode getHead() {
+        return head;
+    }
+
+    public void append(int value) {
+        ListNode newNode = new ListNode(value);
+        if (head == null) {
+            head = tail = newNode;
+        } else {
+            tail.next = newNode;
+            tail = newNode;
+        }
+    }
+}
+
+
+
+//Optimal appraoch 
+
+//Method 1
+
+class Solution {
+    private ListNode mergedHead; // Stores the head of the merged singly linked list
+    private ListNode mergedTail; // Stores the tail of the merged singly linked list
+
+    public ListNode mergeKLists(ListNode[] lists) {
+        // Edge case: If there are no singly linked lists, return null
+        if (lists.length == 0) {
+            return null;
+        }
+
+        // Use divide-and-conquer to merge all sorted singly linked lists
+        return mergeSortedSinglyLinkedLists(lists, 0, lists.length - 1);
+    }
+
+    private ListNode mergeSortedSinglyLinkedLists(ListNode[] lists, int left, int right) {
+        // Base case: If there is only one singly linked list, return it
+        if (left == right) {
+            return lists[left];
+        }
+
+        // Find the middle index
+        int mid = left + (right - left) / 2;
+
+        // Recursively merge the left and right halves
+        ListNode leftPartHead = mergeSortedSinglyLinkedLists(lists, left, mid);
+        ListNode rightPartHead = mergeSortedSinglyLinkedLists(lists, mid + 1, right);
+
+        // Merge the two sorted singly linked lists and return the merged list head
+        merge(leftPartHead, rightPartHead);
+        return mergedHead;
+    }
+
+    private void merge(ListNode head1, ListNode head2) {
+        mergedHead = mergedTail = null;
+        ListNode currentNode1 = head1;
+        ListNode currentNode2 = head2;
+
+        while (currentNode1 != null && currentNode2 != null) {
+            int val1 = currentNode1.val;
+            int val2 = currentNode2.val;
+
+            if (val1 <= val2) {
+                append(currentNode1);
+                currentNode1 = currentNode1.next;
+            } else {
+                append(currentNode2);
+                currentNode2 = currentNode2.next;
+            }
+        }
+
+        if (currentNode1 != null) {
+            append(currentNode1);
+            currentNode1 = currentNode1.next;
+        }
+
+        if (currentNode2 != null) {
+            append(currentNode2);
+            currentNode2 = currentNode2.next;
+        }
+    }
+
+    private void append(ListNode node) {
+        if (mergedHead == null) {
+            mergedHead = mergedTail = node;
+        } else {
+            mergedTail.next = node;
+            mergedTail = mergedTail.next;
+        }
+    }
+}
+
+
+//Method 2
+
