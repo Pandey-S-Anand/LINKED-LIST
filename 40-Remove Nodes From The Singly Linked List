@@ -1,0 +1,158 @@
+/**
+ * Definition for singly-linked list.
+ * public class ListNode {
+ * int val;
+ * ListNode next;
+ * ListNode() {}
+ * ListNode(int val) { this.val = val; }
+ * ListNode(int val, ListNode next) { this.val = val; this.next = next; }
+ * }
+ */
+
+
+//Bruteforce approach
+ 
+class Solution {
+    private ListNode newHead;
+    private ListNode newTail;
+
+    public ListNode removeNodes(ListNode head) {
+        if (head.next == null) {
+            return head;
+        }
+
+        ListNode currentNode = head;
+
+        while (currentNode != null) {
+            if (!hasGreaterOnRight(currentNode)) {
+                append(currentNode);
+            }
+
+            currentNode = currentNode.next;
+        }
+
+        return newHead;
+    }
+
+    private boolean hasGreaterOnRight(ListNode node) {
+        ListNode currentNode = node.next;
+
+        while (currentNode != null) {
+            if (node.val < currentNode.val) {
+                return true;
+            }
+            currentNode = currentNode.next;
+        }
+
+        return false;
+    }
+
+    private void append(ListNode node) {
+        if (newHead == null) {
+            newHead = newTail = node;
+        } else {
+            newTail.next = node;
+            newTail = node;
+        }
+    }
+}
+
+
+//Better approach (Monotonic decreasing stack)
+
+class Solution {
+    public ListNode removeNodes(ListNode head) {
+        Deque<ListNode> stack = new ArrayDeque<>();
+        ListNode currentNode = head;
+
+        // Traverse the singly linked list and use a stack to filter nodes
+        while (currentNode != null) {
+            // Remove smaller elements from the stack
+            while (!stack.isEmpty() && currentNode.val > stack.peek().val) {
+                stack.pop();
+            }
+
+            stack.push(currentNode);
+            currentNode = currentNode.next;
+        }
+
+        // Reconstruct the singly linked list from the stack
+        ListNode prevNode = null;
+
+        while (!stack.isEmpty()) {
+            ListNode node = stack.pop();
+            node.next = prevNode;
+            prevNode = node;
+        }
+
+        return prevNode;
+    }
+}
+
+
+//Optimal approach
+
+class Solution {
+    public ListNode removeNodes(ListNode head) {
+        // Edge case: If the singly linked list has only one node, return it as is
+        if (head.next == null) {
+            return head;
+        }
+
+        /**
+         * After reversing the singly linked list, the problem transforms into:
+         * 
+         * "Remove nodes whose value is lesser than any node on the left."
+         * 
+         * Explanation:
+         * 1. The right side of each node in the original singly linked list becomes the
+         * left side in the reversed singly linked list.
+         * 2. Instead of checking for greater values on the right, we now check for
+         * greater values on the left.
+         * 3. We keep track of the maximum value encountered so far (maxSoFar) while
+         * traversing from left to right (which was right to left before reversal).
+         * 4. If a node's value is less than maxSoFar, we remove it by skipping the node.
+         * 5. Finally, we reverse the singly linked list again to restore the original order.
+         */
+        head = reverse(head); // Tail becomes the head and vice versa
+
+        // Initialize pointers and set maxSoFar to the value of the first node
+        ListNode prevNode = head;
+        ListNode currentNode = head.next;
+        int maxSoFar = head.val;
+
+        // Traverse the reversed singly linked list
+        while (currentNode != null) {
+            int value = currentNode.val;
+
+            // If the current node's value is less than maxSoFar, remove it
+            if (value < maxSoFar) {
+                prevNode.next = currentNode.next; // Skip the current node
+            } else {
+                // If the current node's value is greater maxSoFar, update maxSoFar
+                maxSoFar = Math.max(maxSoFar, value);
+                prevNode = currentNode; // Move prevNode to the current node
+            }
+
+            // Move currentNode to the next node
+            currentNode = prevNode.next;
+        }
+
+        //Reverse the singly linked list again to restore the original order
+        return reverse(head);
+    }
+
+    private ListNode reverse(ListNode head) {
+        ListNode prevNode = null;
+        ListNode currentNode = head;
+
+        while (currentNode != null) {
+            ListNode nextNode = currentNode.next;
+            currentNode.next = prevNode;
+            prevNode = currentNode;
+            currentNode = nextNode;
+        }
+
+        return prevNode;
+    }
+}
