@@ -144,3 +144,56 @@ class Solution {
 
 //Method 2
 
+class Solution {
+    public ListNode mergeKLists(ListNode[] lists) {
+        // Edge case: If there are no linked lists, return null
+        if (lists.length == 0) {
+            return null;
+        }
+
+        /*
+         * Min-Heap (Priority Queue) to store the nodes in sorted order
+         * The heap maintains the order of nodes based on their value (ascending order)
+         */
+        PriorityQueue<ListNode> minHeap = new PriorityQueue<>((node1, node2) -> node1.val - node2.val);
+
+        // Step 1: Add the head of each non-empty singly linked list to the heap
+        for (ListNode head : lists) {
+            if (head != null) {
+                minHeap.offer(head);
+            }
+        }
+
+        // If the heap is empty after adding nodes, return null
+        if (minHeap.isEmpty()) {
+            return null;
+        }
+
+        // Step 2: Extract the first node to start the merged singly linked list
+        ListNode mergedHead, mergedTail;
+        mergedHead = mergedTail = minHeap.poll();
+
+        // If the extracted node has a next node, add it to the heap
+        if (mergedTail.next != null) {
+            minHeap.offer(mergedTail.next);
+        }
+
+        // Step 3: Process the remaining nodes in the heap
+        while (!minHeap.isEmpty()) {
+            // Extract the smallest node from the heap
+            ListNode smallestNode = minHeap.poll();
+
+            // Append the extracted node to the merged singly linked list
+            mergedTail.next = smallestNode;
+            mergedTail = smallestNode;
+
+            // If there are more nodes in the extracted node’s list, add them to the heap
+            if (smallestNode.next != null) {
+                minHeap.offer(smallestNode.next);
+            }
+        }
+
+        // Return the head of the merged singly linked list
+        return mergedHead;
+    }
+}
