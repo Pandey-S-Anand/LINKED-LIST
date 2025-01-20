@@ -1,0 +1,48 @@
+/**
+ * Definition for singly-linked list.
+ * public class ListNode {
+ * int val;
+ * ListNode next;
+ * ListNode() {}
+ * ListNode(int val) { this.val = val; }
+ * ListNode(int val, ListNode next) { this.val = val; this.next = next; }
+ * }
+ */
+
+class Solution {
+    public ListNode modifiedList(int[] arr, ListNode head) {
+        // Using a HashSet to store values that need to be removed for quick lookup
+        Set<Integer> removalSet = new HashSet<>();
+
+        for (int value : arr) {
+            removalSet.add(value);
+        }
+
+        ListNode prevNode = null; // Tracks the previous node
+        ListNode currentNode = head; // Traverses the singly linked list
+
+        while (currentNode != null) {
+            int nodeValue = currentNode.val;
+
+            // If the current node's value is in the removal set, delete it
+            if (removalSet.contains(nodeValue)) {
+                // If there is a previous node, update its next pointer to skip the current node
+                if (prevNode != null) {
+                    prevNode.next = currentNode.next;
+                }
+
+                // If the current node is the head, move the head to the next node
+                if (currentNode == head) {
+                    head = currentNode.next;
+                }
+            } else {
+                prevNode = currentNode; // Update previous only if the current node is retained
+            }
+
+            currentNode = currentNode.next; // Move to the next node
+        }
+
+        return head; // Return the modified singly linked list
+    }
+}
+
