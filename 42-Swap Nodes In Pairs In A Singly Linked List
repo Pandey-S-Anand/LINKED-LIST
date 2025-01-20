@@ -8,7 +8,9 @@
  * ListNode(int val, ListNode next) { this.val = val; this.next = next; }
  * }
  */
- 
+
+//Intuitive implementation
+
 class Solution {
     public ListNode swapPairs(ListNode head) {
         // If the singly linked list is empty or has only one node, no swapping is needed
@@ -54,5 +56,37 @@ class Solution {
         }
 
         return head; // Return the new head of the modified singly linked list
+    }
+}
+
+
+//Optimal implementation
+
+class Solution {
+    public ListNode swapPairs(ListNode head) {
+        if (head == null || head.next == null) {
+            return head;
+        }
+
+        ListNode currentNode = head;
+        ListNode prevNode = null;
+        // The second node will become the new head after the first swap
+        head = head.next;
+
+        while (currentNode != null && currentNode.next != null) {
+            ListNode nextNode = currentNode.next;
+
+            currentNode.next = nextNode.next;
+            nextNode.next = currentNode;
+
+            if (prevNode != null) {
+                prevNode.next = nextNode;
+            }
+
+            prevNode = currentNode;
+            currentNode = currentNode.next;
+        }
+
+        return head;
     }
 }
