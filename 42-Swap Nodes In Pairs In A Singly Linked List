@@ -1,0 +1,58 @@
+/**
+ * Definition for singly-linked list.
+ * public class ListNode {
+ * int val;
+ * ListNode next;
+ * ListNode() {}
+ * ListNode(int val) { this.val = val; }
+ * ListNode(int val, ListNode next) { this.val = val; this.next = next; }
+ * }
+ */
+ 
+class Solution {
+    public ListNode swapPairs(ListNode head) {
+        // If the singly linked list is empty or has only one node, no swapping is needed
+        if (head == null || head.next == null) {
+            return head;
+        }
+
+        ListNode currentNode = head; // Pointer to traverse the singly linked list
+        ListNode prevNode = null; // Pointer to track the node previous to the current node
+
+        while (currentNode != null) {
+            ListNode nextNode = currentNode.next; // Pointer to the next node (to be swapped)
+
+            /*
+             * If there is no second node available to form a pair, stop the process.
+             * This happens when the singly linked list has an odd number of nodes.
+             */
+            if (nextNode == null) {
+                break;
+            }
+
+            // Perform swap
+            // Connect the current node to the node after the next node
+            currentNode.next = nextNode.next;
+            // Connect the next node to the current node
+            nextNode.next = currentNode;
+
+            /*
+             * If there was a previous node, link it to the new first node of the swapped pair.
+             * This ensures that the previously swapped pair correctly connects to the current swapped pair.
+             */
+            if (prevNode != null) {
+                prevNode.next = nextNode;
+            }
+
+            // Update the head pointer for the first pair swap
+            if (prevNode == null) {
+                head = nextNode;
+            }
+
+            prevNode = currentNode;
+            currentNode = currentNode.next; // Move currentNode to the next pair
+        }
+
+        return head; // Return the new head of the modified singly linked list
+    }
+}
