@@ -1,0 +1,29 @@
+class Solution {
+    Node deleteK(Node head, int k) {
+        if (k == 1) { // If k == 1, we remove every node, so return null
+            return null;
+        }
+
+        Node currentNode = head;
+        Node prevNode = null;
+        int count = 1; // Start from position 1
+
+        while (currentNode != null) {
+            /*
+             * % (modulus) gives the remainder when count is divided by k.
+             * If count % k == 0, it means count is exactly divisible by k.
+             * This means count takes values like k, 2k, 3k, 4k,..., which are the multiples of k—
+             * these correspond to every kth node in the singly linked list.
+             */
+            if (count % k == 0) {
+                prevNode.next = currentNode.next; // Remove current node
+            } else {
+                prevNode = currentNode; // Move prev forward only if not deleting
+            }
+            currentNode = currentNode.next; // Move to next node
+            count++;
+        }
+
+        return head;
+    }
+}
