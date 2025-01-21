@@ -1,4 +1,35 @@
-//Illustration
+/**
+ * ============================
+ * Why Doubly Linked List, Not Singly Linked List? And Why Map?
+ * ============================
+ *
+ * 1️⃣ **Why Not Use an ArrayList?**
+ * --------------------------------------------------------
+ * - If we used an **ArrayList or any dynamic array**, deleting an element would 
+ *   require **shifting all elements**, making the deletion operation **O(n)**.
+ * - Since LRU requires frequent **removals and insertions**, a **linked list is more efficient** 
+ *   than an array-based structure.
+ *
+ * 2️⃣ **Why Doubly Linked List (DLL), Not Singly Linked List (SLL)?**
+ * --------------------------------------------------------
+ * - In **LRU Cache**, when deleting a node, we need access to the **previous node** 
+ *   to update its `next` pointer. 
+ * - In a **Singly Linked List**, we would need to **traverse from the head** 
+ *   to find the previous node, making deletion **O(n)**.
+ * - With a **Doubly Linked List**, we have a **previous (`prev`) pointer**, 
+ *   so we can **remove a node in O(1)**.
+ *
+ * 3️⃣ **Why Use a HashMap?**
+ * --------------------------------------------------------
+ * - Without a HashMap, to find a node with a specific **key**, 
+ *   we would need to **traverse the entire linked list**, which is **O(n)**.
+ * - A **HashMap (`cache`) stores key -> corresponding DLL node**, 
+ *   allowing **O(1) access** to any key.
+ *
+ * ✅ **Combining HashMap + Doubly Linked List gives us O(1) `get()` and `put()` operations.**
+ */
+
+
 /*
  * LRUCache lRUCache = new LRUCache(2); // Create cache with capacity = 2
  *
