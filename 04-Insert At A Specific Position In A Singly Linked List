@@ -1,21 +1,22 @@
 public class Solution {
-    static Node insert(Node head, int n, int index, int val) {
+    static Node insert(Node head, int n, int pos, int val) {
         Node currentNode = head;
         Node prevNode = null;
 
-        while (index > 0) {
+        // Traverse the list up to the given position
+        while (pos > 0) {
             prevNode = currentNode;
             currentNode = currentNode.next;
-            index--;
+            pos--;
         }
 
         /*
          * After the completion of the loop, prevNode will point to the node just before
-         * the target index (targetIndex - 1), and currentNode will point to the node at
-         * the target index (targetIndex).
+         * the target position (pos - 1), and currentNode will point to the node at
+         * the target position (pos).
          */
         Node newNode = new Node(val);
-        // Handle special case when index is 0 (insert at the beginning)
+        // Handle special case when pos is 0 (insert at the beginning)
         if (prevNode == null) {
             newNode.next = head;
             head = newNode;
