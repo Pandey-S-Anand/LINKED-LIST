@@ -12,25 +12,28 @@ class Node
 
 class Solution {
     Node deleteNode(Node head, int x) {
-       Node currentNode=head;
-       Node previousNode=null;
-       
-       // Traverse to the xth node (1-based indexing)
-       while(x>1){
-          previousNode=currentNode;
-          currentNode=currentNode.next;
-          x--; 
-       }
-       
-       
-       if(previousNode==null){ // If deleting the first node
-           head=currentNode.next;  // Update the head to the next node 
-       }else if(currentNode.next==null){ // If deleting the last node
-           previousNode.next=null; // Set the previous node's next to null
-       }else{  // If deleting an intermediate node
-           previousNode.next=currentNode.next;  // Skip the current node to delete it
-       }
-       
-       return head;
+        Node currentNode = head;
+        Node prevNode = null;
+
+        // Traverse the list to reach the x-th node : Stop when x becomes 1 (we're at the node to delete)
+        while (x > 1) {
+            prevNode = currentNode;          
+            currentNode = currentNode.next; 
+            x--;
+        }
+
+        // If deleting the first node (i.e., position x = 1)
+        if (prevNode == null) {
+            return head.next; // Return second node as new head
+        }
+
+        // Bypass the current node to delete it from the list
+        prevNode.next = currentNode.next;
+
+        // Disconnect the deleted node (optional, helps GC in Java)
+        currentNode.next = null;
+
+        // Return the updated head
+        return head;
     }
 }
