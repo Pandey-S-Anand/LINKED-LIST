@@ -38,19 +38,21 @@ class Solution {
     }
 }
 
+
 /*
- * Consider the list: 1 -> 2 -> 3 -> 4 -> 5
+ * Consider the linked list: 1 -> 2 -> 3 -> 4 -> 5
  *
- * If we delete the node with value 2:
+ * Suppose we want to delete the node with value 2, and we are only given a reference to that node.
  *
- * 1. The operation `node.val = node.next.val` overwrites the value of the current node (2) with the value of the next node (3).
+ * 1. We perform `node.val = node.next.val`, which copies the value of the next node (3) into the current node (2).
+ *    The list now looks like: 1 -> 3 -> 3 -> 4 -> 5
  *
- * 2. `node.next` is updated to point to `node.next.next`, effectively skipping the original node with value 3 and pointing to the node with value 4.
+ * 2. Then we update `node.next = node.next.next`, which bypasses the next node (original 3) and points to node 4.
+ *    The list becomes: 1 -> 3 -> 4 -> 5
  *
- * 3. The original node with value 3 remains in memory, still pointing to the node with value 4, but it is no longer accessible by any other node in the linked list.
+ * 3. The original node with value 3 is no longer referenced in the list and becomes eligible for garbage collection.
  *
- * 4. The list becomes 1 -> 3 -> 4 -> 5, effectively removing the node with value 2.
- *    The original node with value 3 is overwritten and lost, but its memory remains until it is garbage collected.
+ * Final result: the node with value 2 is effectively deleted by copying over the next node’s value and skipping it.
  */
 
 //Optimal Approach
