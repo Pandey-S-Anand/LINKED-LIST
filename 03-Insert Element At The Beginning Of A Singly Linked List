@@ -1,10 +1,15 @@
 class Solution {
-    public Node insertAtBegining(Node head, int x) {
+        public Node insertAtBegining(Node head, int x) {
+        // Create a new node with the given value x
         Node newHead = new Node(x);
 
+        // Point the next of new node to the current head
         newHead.next = head;
+
+        // Update head to point to the new node
         head = newHead;
 
+        // Return the new head of the list
         return head;
     }
 }
