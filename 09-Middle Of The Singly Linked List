@@ -1,26 +1,26 @@
 /**
  * Definition for singly-linked list.
  * public class ListNode {
- * int val;
- * ListNode next;
- * ListNode() {}
- * ListNode(int val) { this.val = val; }
- * ListNode(int val, ListNode next) { this.val = val; this.next = next; }
+ *     int val;
+ *     ListNode next;
+ *     ListNode() {}
+ *     ListNode(int val) { this.val = val; }
+ *     ListNode(int val, ListNode next) { this.val = val; this.next = next; }
  * }
  */
-
-//Bruteforce Approach
-
 class Solution {
     public ListNode middleNode(ListNode head) {
+        // Step 1: Calculate the total number of nodes in the list
         int middleIndex = getSize(head) / 2;
 
+        // Step 2: Traverse to the middle node
         ListNode currentNode = head;
         while (middleIndex > 0) {
             currentNode = currentNode.next;
             middleIndex--;
         }
 
+        // Step 3: Return the middle node
         return currentNode;
     }
 
@@ -29,13 +29,14 @@ class Solution {
         int size = 0;
 
         while (currentNode != null) {
-            size++;
             currentNode = currentNode.next;
+            size++;
         }
 
         return size;
     }
 }
+
 
 
 //Optimal Approach
