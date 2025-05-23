@@ -2,17 +2,19 @@
 
 class Solution {
     public int getCount(Node head) {
-        int length = 0;
         Node currentNode = head;
+        int size = 0;
 
+        // Traverse the entire list and count the number of nodes
         while (currentNode != null) {
             currentNode = currentNode.next;
-            length++;
+            size++;
         }
 
-        return length;
+        return size;
     }
 }
+
 
 //Optimal Approach
 
