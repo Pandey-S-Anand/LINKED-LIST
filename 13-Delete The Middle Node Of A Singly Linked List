@@ -54,33 +54,45 @@ class Solution {
 
 /*
  * - For an **odd-sized list** (e.g., `1 -> 2 -> 3`), the loop ends when
- *   `currentFast.next == null`, ensuring that `currentSlow` is at the exact middle node (`2`).
+ *   `fast.next == null`, ensuring that `slow` is at the exact middle node (`2`).
  * - For an **even-sized list** (e.g., `1 -> 2 -> 3 -> 4`), the loop ends when`currentFast == null`,
- *   ensuring that `currentSlow` points to the second middle node (`3`).
+ *   ensuring that `slow` points to the second middle node (`3`).
  * - **As per the problem's requirement**, for even-sized lists, there are two middle nodes,
  *.  and we are expected to treat the second middle node as the middle.
- * - The condition `currentFast != null` ensures proper handling for even-sized lists,
- *.   while `currentFast.next != null` handles odd-sized lists.
+ * - The condition `fast != null` ensures proper handling for even-sized lists,
+ *.   while `fast.next != null` handles odd-sized lists.
  */
+
 class Solution {
     public ListNode deleteMiddle(ListNode head) {
+        // Edge case: Only one node in the list
         if (head.next == null) {
             return null;
         }
 
-        ListNode slowPrev = null; // Keeps track of the node before the middle node
+        // Find both the middle node and its previous node
+        ListNode[] middleInfo = findMiddleAndPrevious(head);
+        ListNode previous = middleInfo[0];
+        ListNode middle = middleInfo[1];
+
+        // Remove the middle node by bypassing it in the list
+        previous.next = middle.next;
+
+        return head;
+    }
+
+    private ListNode[] findMiddleAndPrevious(ListNode head) {
+        ListNode previous = null;
         ListNode slow = head;
         ListNode fast = head;
 
+        // Move fast by 2 and slow by 1
         while (fast != null && fast.next != null) {
-            slowPrev = slow; // Update the node before the slow pointer
-            slow = slow.next;
-            fast = fast.next.next;
+            previous = slow;      // Track the node before slow
+            slow = slow.next;     // Move slow one step
+            fast = fast.next.next; // Move fast two steps
         }
-        
-        // After the loop, the slow pointer points to the middle node. Remove the middle node by updating the 'next' pointer of the previous node.
-        slowPrev.next = slow.next;
 
-        return head;
+        return new ListNode[] { previous, slow };
     }
 }
