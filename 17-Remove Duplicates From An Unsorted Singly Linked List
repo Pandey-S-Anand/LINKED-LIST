@@ -1,22 +1,41 @@
 class Solution {
     public Node removeDuplicates(Node head) {
-        Set<Integer> seen = new HashSet<>();
-
-        Node currentNode = head;
-        Node prevNode = null;
-
-        while (currentNode != null) {
-            // If the current value is already seen, remove the current node
-            if (seen.contains(currentNode.data)) {
-                prevNode.next = currentNode.next;
-            } else {
-                // Add the value to the set and move prev pointer
-                seen.add(currentNode.data);
-                prevNode = currentNode;
-            }
-            currentNode = currentNode.next;
+        // If the list has only one node or is empty, return it as is
+        if (head == null || head.next == null) {
+            return head;
         }
 
+        // Set to store unique values we have already seen
+        Set<Integer> seenValues = new HashSet<>();
+
+        // Initialize two pointers:
+        Node currentNode = head;  // currentNode - to traverse the list
+        Node prevNode = null;  // prevNode - to help reconnect the list when a duplicate is found
+
+        // Traverse the linked list
+        while (currentNode != null) {
+            int nodeValue = currentNode.data;
+
+            if (seenValues.contains(nodeValue)) {
+                // Duplicate detected: skip this node : Connect previous node to currentNode's next
+                prevNode.next = currentNode.next;
+
+                // Optional: help GC by disconnecting currentNode
+                currentNode.next = null;
+
+                // Move to the next node (prevNode doesn't change here)
+                currentNode = prevNode.next;
+            } else {
+                // First time this value is seen
+                seenValues.add(nodeValue);
+
+                // Move both pointers ahead
+                prevNode = currentNode;
+                currentNode = currentNode.next;
+            }
+        }
+
+        // Return the head 
         return head;
     }
 }
