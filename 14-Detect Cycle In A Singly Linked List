@@ -67,7 +67,7 @@ public class Solution {
  * 5: F
  * 6: G
  * 7: H
- *      ↘ back to C (node 2)
+ *      ↘ back to C (node 2) (loop start)
  *
  * Step-by-step movement of slow (1 step) and fast (2 steps):
  *
