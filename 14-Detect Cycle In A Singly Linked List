@@ -23,21 +23,23 @@ public class Solution {
 }
 
 
+// Optimal Approach (Floyd's Cycle Detection Algorithm)
+
 /**
  * Detects if a singly linked list contains a cycle.
  *
  * Approach:
  * - This uses Floyd's Cycle Detection Algorithm (Tortoise and Hare).
  * - Two pointers (`slow` and `fast`) traverse the list:
- * - `slow` moves one step at a time.
- * - `fast` moves two steps at a time.
+ *   - `slow` moves one step at a time.
+ *   - `fast` moves two steps at a time.
  * - If there is a cycle, the `slow` and `fast` pointers will eventually meet,
- *.  meaning the while-loop termination condition (`fast != null && fast.next != null`) will not be met, leading to an infinite loop.
- * - If there is no cycle, `fast` or `fast.next` will reach `null`, and the loop  terminates safely without entering an infinite loop.
+ *   meaning the while-loop termination condition (`fast != null && fast.next != null`) will not be met, leading to an infinite loop.
+ * - If there is no cycle, `fast` or `fast.next` will reach `null`, and the loop terminates safely without entering an infinite loop.
  *
  * Explanation for pointer meeting in case of a loop:
  * - At the first instant when both pointers enter the loop, the gap between the
- *  fast and slow pointers (measured in the clockwise direction) is at its  maximum.
+ *   fast and slow pointers (measured in the clockwise direction) is at its maximum.
  * - As both pointers continue moving, the fast pointer gradually reduces the gap by 1 step in each subsequent iteration.
  * - This happens because the fast pointer moves 2 steps for every 1 step the slow pointer takes. 
  *   As a result, the fast pointer eventually catches up with the slow pointer.
@@ -48,13 +50,41 @@ public class Solution {
  * - For an **odd-sized list** (e.g., `1 -> 2 -> 3`), the loop ends when `fast.next == null`.
  * - For an **even-sized list** (e.g., `1 -> 2 -> 3 -> 4`), the loop ends when `fast == null`.
  *
- * Key Conditions:
- * - The condition `fast != null && fast.next != null` ensures proper termination:
- * - `fast.next != null` is required for odd-sized lists.
- * - `fast != null` is required for even-sized lists.
+ * Example of Floyd's Cycle Detection (Tortoise and Hare):
+ *
+ * Linked list structure with cycle:
+ * A -> B -> C -> D -> E
+ *           ^         |
+ *           |         v
+ *           H <- G <- F
+ *
+ * Node indexing:
+ * 0: A
+ * 1: B
+ * 2: C  <- cycle starts here
+ * 3: D
+ * 4: E
+ * 5: F
+ * 6: G
+ * 7: H
+ *      ↘ back to C (node 2)
+ *
+ * Step-by-step movement of slow (1 step) and fast (2 steps):
+ *
+ * Step | slow at | fast at
+ * -----|---------|---------
+ * 0    | A (0)   | A (0)
+ * 1    | B (1)   | C (2)
+ * 2    | C (2)   | E (4)
+ * 3    | D (3)   | G (6)
+ * 4    | E (4)   | C (2)
+ * 5    | F (5)   | E (4)
+ * 6    | G (6)   | G (6)   <-- slow and fast meet here (inside cycle)
+ *
+ * - They meet at node G (index 6), confirming a cycle exists.
+ * - This meeting point is not necessarily the cycle's start.
  */
 
-// Optimal Approach (Floyd's Cycle Detection Algorithm)
 
 public class Solution {
     public boolean hasCycle(ListNode head) {
