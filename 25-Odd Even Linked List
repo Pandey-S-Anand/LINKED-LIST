@@ -59,57 +59,69 @@ class Solution {
 //Better Approach
  
 class Solution {
+    // Pointers to maintain separate lists for even-indexed and odd-indexed nodes
+    private ListNode evenHead;
+    private ListNode evenTail;
+    private ListNode oddHead;
+    private ListNode oddTail;
+
     public ListNode oddEvenList(ListNode head) {
-        // Base case: If the singly linked list is empty or has only one node, no rearrangement is needed
+        // Base case: If the list is empty or contains only one node, return as-is
         if (head == null || head.next == null) {
             return head;
         }
 
-        // Create two separate singly linked lists for odd-indexed and even-indexed nodes
-        SinglyLinkedList oddIndexedNodes = new SinglyLinkedList();
-        SinglyLinkedList evenIndexedNodes = new SinglyLinkedList();
-        ListNode currentNode = head;
-        boolean isOddIndex = true;
+        ListNode currentNode = head;     // Pointer to traverse the original list
+        ListNode prevNode = null;        // Used to break existing links in original list
+        boolean isOddIndex = true;       // Tracks whether current position is odd
 
-        // Traverse the original singly linked list and divide nodes into odd and even indexed nodes
         while (currentNode != null) {
+            // Append the current node to either the odd or even list
             if (isOddIndex) {
-                oddIndexedNodes.append(currentNode.val); // Add to odd-indexed singly linked list
+                append(currentNode, false); // false → odd
             } else {
-                evenIndexedNodes.append(currentNode.val); // Add to even-indexed singly linked list
+                append(currentNode, true);  // true → even
             }
 
-            isOddIndex = !isOddIndex; // Alternate between odd and even indexes
-            currentNode = currentNode.next; // Move to the next node
+            isOddIndex = !isOddIndex; // Flip the flag for the next node
+
+            /*
+             * Disconnect the previous node from the current node to break
+             * any leftover 'next' references from the original list.
+             * This is crucial to avoid cross-linking and prevent cycles
+             * when reconstructing the final linked list.
+             */
+            if (prevNode != null) {
+                prevNode.next = null;
+            }
+
+            // Advance both pointers
+            prevNode = currentNode;
+            currentNode = currentNode.next;
         }
 
-        // Combine the two singly linked lists by connecting the tail of the odd-indexed singly linked list to the head of the even-indexed singly linked list
-        oddIndexedNodes.getTail().next = evenIndexedNodes.getHead();
+        // After segregation, link the last node of the odd list to the head of the even list
+        oddTail.next = evenHead;
 
-        // Return the rearranged singly linked list starting from the head of the odd-indexed singly linked list
-        return oddIndexedNodes.getHead();
-    }
-}
-
-class SinglyLinkedList {
-    private ListNode head;
-    private ListNode tail;
-
-    public ListNode getHead() {
-        return this.head;
+        // Return the modified list starting with the odd-indexed nodes
+        return oddHead;
     }
 
-    public ListNode getTail() {
-        return this.tail;
-    }
-
-    public void append(int data) {
-        ListNode newNode = new ListNode(data);
-        if (head == null) {
-            head = tail = newNode;
+    private void append(ListNode node, boolean isEven) {
+        if (isEven) {
+            if (evenHead == null) {
+                evenHead = evenTail = node;
+            } else {
+                evenTail.next = node;
+                evenTail = node;
+            }
         } else {
-            tail.next = newNode;
-            tail = newNode;
+            if (oddHead == null) {
+                oddHead = oddTail = node;
+            } else {
+                oddTail.next = node;
+                oddTail = node;
+            }
         }
     }
 }
