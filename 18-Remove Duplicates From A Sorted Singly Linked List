@@ -1,23 +1,39 @@
 class Solution {
     Node removeDuplicates(Node head) {
-        if (head == null) {
-            return null;
+        // Edge case: if the list has only one node, it's already duplicate-free
+        if (head.next == null) {
+            return head;
         }
 
+        // prevNode will track the last unique node
         Node prevNode = head;
+
+        // currentNode starts from the second node
         Node currentNode = head.next;
 
+        // Traverse the linked list
         while (currentNode != null) {
-            // If current node's data is equal to previous node's data, skip the current node
+            // Compare current node with the previous node
             if (prevNode.data == currentNode.data) {
-                prevNode.next = currentNode.next; // Link previous node to next of current
-            } else {
-                prevNode = currentNode; // Move prevNode pointer to current node if it's unique
-            }
-            currentNode = currentNode.next; // Move to the next node in the singly linked list
+                // Duplicate found: skip current node
+                Node nextNode = currentNode.next;
 
+                // Remove current node by updating links
+                prevNode.next = nextNode;
+
+                // Optional: help GC (not necessary, but clean)
+                currentNode.next = null;
+
+                // Move to next node (prevNode remains the same)
+                currentNode = nextNode;
+            } else {
+                // No duplicate: move both pointers forward
+                prevNode = currentNode;
+                currentNode = currentNode.next;
+            }
         }
 
+        // Return head of the updated list
         return head;
     }
 }
