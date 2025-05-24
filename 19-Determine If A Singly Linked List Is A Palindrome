@@ -73,29 +73,40 @@ class Solution {
 
 class Solution {
     public boolean isPalindrome(ListNode head) {
-        // Step 1: Find the middle node of the singly linked list
+        // Step 1: Find the middle node of the linked list using Floyd's Tortoise and Hare algorithm
         ListNode middleNode = findMiddleNode(head);
 
-        // Step 2: Reverse the links in the second half of the singly linked list
-        ListNode tail = reverse(middleNode);
+        /*
+         * Example 1: Even number of nodes
+         *   Input: 1 -> 2 -> 2 -> 1
+         *   Middle node points to the second '2'
+         *   First half before middle: 1 -> 2
+         *   Second half from middle (after reversing): 1 -> 2
+         * 
+         * Example 2: Odd number of nodes
+         *   Input: 1 -> 2 -> 3 -> 2 -> 1
+         *   Middle node points to '3'
+         *   First half before middle: 1 -> 2 (last node of first half (i.e 2) points to the last node of the reversed half (i.e 3))
+         *   Second half from middle (after reversing): 1 -> 2 -> 3 
+         *   While comparing, we skip the exact middle node.
+         */
 
-        // Step 3: Compare the first half and the reversed second half
-        ListNode start = head; // Pointer for the first half
-        ListNode end = tail; // Pointer for the reversed second half
+        // Step 2: Reverse the second half of the list starting from middle node
+        ListNode currentNode1 = head;
+        ListNode currentNode2 = reverse(middleNode);
 
-        while (end != null) {
-            if (start.val != end.val) {
-                return false; // Not a palindrome
+        // Step 3: Compare values from the beginning and from the reversed second half
+        while (currentNode2 != null) {
+            if (currentNode1.val != currentNode2.val) {
+                return false; // Mismatch found, not a palindrome
             }
-            start = start.next; // Move pointer in the first half in forward direction
-            end = end.next; // Move pointer in the second half in backward direction
+
+            currentNode1 = currentNode1.next;
+            currentNode2 = currentNode2.next;
         }
 
-        // Step 4: Restore the original singly linked list structure (optional) .
-        // Only needed if the question requires preserving the list's configuration
-        reverse(tail);
-
-        return true; // The list is a palindrome
+        // All values matched => it is a palindrome
+        return true;
     }
 
     private ListNode findMiddleNode(ListNode head) {
@@ -106,15 +117,6 @@ class Solution {
             slow = slow.next;
             fast = fast.next.next;
         }
-
-        /*
-         * Note :
-         * Explanation for odd and even-sized lists:
-         * For odd-sized lists, the slow pointer will point to the exact middle node.
-         * Example: List = [1, 2, 3, 4, 5] -> slow points to 3
-         * For even-sized lists, the slow pointer will point to the second middle node.
-         * Example: List = [1, 2, 3, 4, 5, 6] -> slow points to 4
-         */
 
         return slow;
     }
@@ -130,6 +132,6 @@ class Solution {
             currentNode = nextNode;
         }
 
-        return prevNode; // Return the new head of the reversed list, which is the tail of the original singly linked list
+        return prevNode; // New head of reversed list
     }
 }
