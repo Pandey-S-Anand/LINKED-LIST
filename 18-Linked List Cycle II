@@ -25,6 +25,92 @@ public class Solution {
 
 //Optimal approach
 
+/**
+ * Detects if a singly linked list contains a cycle.
+ *
+ * Approach:
+ * - This uses Floyd's Cycle Detection Algorithm (Tortoise and Hare).
+ * - Two pointers (`slow` and `fast`) traverse the list:
+ *   - `slow` moves one step at a time.
+ *   - `fast` moves two steps at a time.
+ * - If there is a cycle, the `slow` and `fast` pointers will eventually meet,
+ *   meaning the while-loop termination condition (`fast != null && fast.next != null`) will not be met, leading to an infinite loop.
+ * - If there is no cycle, `fast` or `fast.next` will reach `null`, and the loop terminates safely without entering an infinite loop.
+ *
+ * Explanation for pointer meeting in case of a loop:
+ * - At the first instant when both pointers enter the loop, the gap between the
+ *   fast and slow pointers (measured in the clockwise direction) is at its maximum.
+ * - As both pointers continue moving, the fast pointer gradually reduces the gap by 1 step in each subsequent iteration.
+ * - This happens because the fast pointer moves 2 steps for every 1 step the slow pointer takes. 
+ *   As a result, the fast pointer eventually catches up with the slow pointer.
+ *
+ * Edge Cases:
+ * - If the list is empty (`head == null`), there is no cycle.
+ * - If the list has only one node (`head.next == null`), there is no cycle.
+ * - For an **odd-sized list** (e.g., `1 -> 2 -> 3`), the loop ends when `fast.next == null`.
+ * - For an **even-sized list** (e.g., `1 -> 2 -> 3 -> 4`), the loop ends when `fast == null`.
+ *
+ * Example of Floyd's Cycle Detection (Tortoise and Hare):
+ *
+ * Linked list structure with cycle:
+ * A -> B -> C -> D -> E
+ *           ^         |
+ *           |         v
+ *           H <- G <- F
+ *
+ * Node indexing:
+ * 0: A
+ * 1: B
+ * 2: C  <- cycle starts here
+ * 3: D
+ * 4: E
+ * 5: F
+ * 6: G
+ * 7: H
+ *      ↘ points back to C (node 2)
+ *
+ * Step-by-step movement of slow (1 step) and fast (2 steps):
+ *
+ * Step | slow at | fast at
+ * -----|---------|---------
+ * 0    | A (0)   | A (0)
+ * 1    | B (1)   | C (2)
+ * 2    | C (2)   | E (4)
+ * 3    | D (3)   | G (6)
+ * 4    | E (4)   | C (2)
+ * 5    | F (5)   | E (4)
+ * 6    | G (6)   | G (6)   <-- slow and fast meet here (inside cycle)
+ *
+ * - They meet at node G (index 6), confirming a cycle exists.
+ * - This meeting point is not necessarily the cycle's start.
+ *
+ * The `getCycleStart` method works because of the following reasoning:
+ *
+ *   Distances:
+ * - L = distance from head to start of cycle = 2 (A → B → C)
+ * - X = distance from start of cycle (C) to meeting point (G) = 4 (C → D → E → F → G)
+ * - C = total cycle length = 6 (C → D → E → F → G → H → C)
+ *
+ * Step 2: Key Distance Relationship
+ * - When the pointers meet at the meeting point (M), the distances traveled are:
+ *   - `slow`: L + X
+ *   - `fast`: L + X + k * C (where k is the number of full loops by `fast`).
+ * - Since `fast` moves twice as fast as `slow`:
+ *   2(L + X) = L + X + k * C
+ *   => L + X = k * C
+ * - This implies that the distance from the head to the start of the cycle (L)
+ *   is equal to the distance from the meeting point to the start of the cycle (C - X).
+ *
+ * Step 3: Resetting and Moving Pointers
+ * - One pointer (`slow`) is reset to the head.
+ * - The other pointer (`fast`) remains at the meeting point (M).
+ * - Both pointers move one step at a time.
+ * - After L steps from the head and (C - X) steps from the meeting point,
+ *   both pointers will meet at the start of the cycle.
+ *
+ * This ensures that the algorithm correctly identifies the start of the cycle.
+ */
+
 public class Solution {
     public ListNode detectCycle(ListNode head) {
         // Step 1: Check for the existence of a cycle and find the meeting point if a cycle is detected
@@ -62,40 +148,6 @@ public class Solution {
             pointer2 = pointer2.next;
         }
 
-        return pointer1; // Start of the cycle
+        return pointer1; // Start of the cycle (pointer1 or pointer2)
     }
 }
-
-/**
- * The `getCycleStart` method works because of the following reasoning:
- *
- * Structure of a linked list with a cycle:
- * - L: Distance from the head to the start of the cycle.
- * - C: Total length of the cycle.
- * - X: Distance from the start of the cycle to the meeting point.
- *
- * Step 1: Detecting the cycle
- * - Two pointers, `slow` and `fast`, traverse the list.
- *   - `slow` moves one step at a time.
- *   - `fast` moves two steps at a time.
- * - If a cycle exists, `slow` and `fast` will eventually meet at a point inside the cycle.
- *
- * Step 2: Key Distance Relationship
- * - When the pointers meet at the meeting point (M), the distances traveled are:
- *   - `slow`: L + X
- *   - `fast`: L + X + k * C (where k is the number of full loops by `fast`).
- * - Since `fast` moves twice as fast as `slow`:
- *   2(L + X) = L + X + k * C
- *   => L + X = k * C
- * - This implies that the distance from the head to the start of the cycle (L)
- *   is equal to the distance from the meeting point to the start of the cycle (C - X).
- *
- * Step 3: Resetting and Moving Pointers
- * - One pointer (`slow`) is reset to the head.
- * - The other pointer (`fast`) remains at the meeting point (M).
- * - Both pointers move one step at a time.
- * - After L steps from the head and (C - X) steps from the meeting point,
- *   both pointers will meet at the start of the cycle.
- *
- * This ensures that the algorithm correctly identifies the start of the cycle.
- */
