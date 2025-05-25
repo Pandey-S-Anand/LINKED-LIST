@@ -1,147 +1,121 @@
 //Bruteforce approach
 
 class Solution {
-    Node flatten(Node root) {
-        Node currentNode = root;
-        List<Integer> nodeValues = new ArrayList<>();
+    // Helper class to build a singly linked list using the bottom pointer
+    private class SinglyLinkedList {
+        private Node head;
+        private Node tail;
 
-        // Collect all values from the multilevel singly linked list
-        while (currentNode != null) {
-            Node currentBottomNode = currentNode;
-            while (currentBottomNode != null) {
-                nodeValues.add(currentBottomNode.data);
-                currentBoottomNode = currentBottomNode.bottom;
+        // Appends a new node with the given data to the bottom of the list
+        public void append(int data) {
+            Node node = new Node(data);
+            if (head == null) {
+                head = tail = node;
+            } else {
+                tail.bottom = node;
+                tail = node;
             }
-            currentNode = currentNode.next;
-        }
-
-        Collections.sort(nodeValues);
-        // Create a new flattened singly linked list using the bottom pointer
-        SinglyLinkedList singlyLinkedList = new SinglyLinkedList();
-
-        for (int nodeValue : nodeValues) {
-            singlyLinkedList.append(nodeValue);
-        }
-
-        return singlyLinkedList.getHead();
-    }
-}
-
-class SinglyLinkedList {
-    private Node head;
-    private Node tail;
-
-    public Node getHead() {
-        return this.head;
-    }
-
-    public void append(int data) {
-        Node node = new Node(data);
-        if (head == null) {
-            head = tail = node;
-        } else {
-            tail.bottom = node;
-            tail = node;
         }
     }
-}
-
-
-//Improved approach
-
-class Solution {
-    private Node head;
-    private Node tail;
 
     Node flatten(Node root) {
         Node currentNode = root;
         List<Integer> nodeValues = new ArrayList<>();
 
+        //Step 1: Traverse all vertical (bottom) lists via the main horizontal (next) list
         while (currentNode != null) {
             Node currentBottomNode = currentNode;
             while (currentBottomNode != null) {
-                nodeValues.add(currentBottomNode.data);
+                nodeValues.add(currentBottomNode.data); // Collect each node's data
                 currentBottomNode = currentBottomNode.bottom;
             }
             currentNode = currentNode.next;
         }
 
+        // Step 2: Sort all collected values to flatten the list in sorted order
         Collections.sort(nodeValues);
 
+        // Step 3: Build a new flattened list using the sorted values and bottom pointers
+        SinglyLinkedList singlyLinkedList = new SinglyLinkedList();
         for (int nodeValue : nodeValues) {
-            append(nodeValue);
+            singlyLinkedList.append(nodeValue); // Append each sorted value to new list
         }
 
-        return head;
-    }
-
-    private void append(int data) {
-        Node node = new Node(data);
-        if (head == null) {
-            head = tail = node;
-        } else {
-            tail.bottom = node;
-            tail = node;
-        }
+        // Final output is a flat list where all nodes are connected via bottom pointers
+        return singlyLinkedList.head;
     }
 }
+
 
 
 
 //Optimal approach
 
 class Solution {
-    private Node flattenedHead; // Head of the final merged singly linked list
-    private Node flattenedTail; // Tail of the final merged singly linked list
+    // Helper class to maintain the head and tail of the merged list using bottom pointers
+    private static class NodePair {
+        private Node head;
+        private Node tail;
 
-    Node flatten(Node head) {
-        if (head == null || head.next == null) {
-            return head; // Base case: return if there is only one singly linked list or none
+        NodePair() {
+            head = tail = null;
         }
 
-        // Recursively flatten the next singly linked lists first
-        Node nextFlattenedHead = flatten(head.next);
-
-        // Merge the current singly linked list with the already flattened next singly linked list
-        return merge(head, nextFlattenedHead);
+        // Appends a node to the flattened list using the bottom pointer.
+        // Note: The flattened list will be printed using the bottom pointer, not the next pointer.
+        public void append(Node node) {
+            if (head == null) {
+                head = tail = node;
+            } else {
+                tail.bottom = node;
+                tail = node;
+            }
+        }
     }
 
-    private Node merge(Node list1, Node list2) {
-        flattenedHead = flattenedTail = null;
-        Node currentNode1 = list1;
-        Node currentNode2 = list2;
+    public Node flatten(Node root) {
+        // Base case: if only one vertical list is left, return it
+        if (root.next == null) {
+            return root;
+        }
 
-        // Merge two sorted bottom-linked singly linked lists
+        // Step 1: Recursively flatten the right side of the list
+        Node nextFlattenedHead = flatten(root.next);
+
+        // Step 2: Merge current vertical list (root) with the flattened right side
+        return merge(root, nextFlattenedHead);
+    }
+
+    private Node merge(Node head1, Node head2) {
+        NodePair merged = new NodePair();
+
+        Node currentNode1 = head1;
+        Node currentNode2 = head2;
+
+        // Merge both lists in sorted order using bottom pointers
         while (currentNode1 != null && currentNode2 != null) {
-            if (currentNode1.data <= currentNode2.data) {
-                appendToFlattenedSinglyLinkedList(currentNode1);
-                currentNode1 = currentNode1.bottom;
+            int data1 = currentNode1.data;
+            int data2 = currentNode2.data;
+
+            if (data1 <= data2) {
+                merged.append(currentNode1);       // Append the smaller node
+                currentNode1 = currentNode1.bottom; // Move to next node in list 1
             } else {
-                appendToFlattenedSinglyLinkedList(currentNode2);
-                currentNode2 = currentNode2.bottom;
+                merged.append(currentNode2);       // Append the smaller node
+                currentNode2 = currentNode2.bottom; // Move to next node in list 2
             }
         }
 
-        // Append any remaining nodes in the singly linked lists
+        // Attach any remaining nodes from list 1
         if (currentNode1 != null) {
-            appendToFlattenedSinglyLinkedList(currentNode1);
-            currentNode1 = currentNode1.bottom;
+            merged.append(currentNode1);
         }
 
+        // Attach any remaining nodes from list 2
         if (currentNode2 != null) {
-            appendToFlattenedSinglyLinkedList(currentNode2);
-            currentNode2 = currentNode2.bottom;
+            merged.append(currentNode2);
         }
 
-        return flattenedHead; // Return the new head of the merged bottom-linked singly linked list
-    }
-
-    private void appendToFlattenedSinglyLinkedList(Node node) {
-        if (flattenedHead == null) {
-            flattenedHead = flattenedTail = node; // Initialize the singly linked list
-        } else {
-            flattenedTail.bottom = node; // Append at the bottom
-            flattenedTail = flattenedTail.bottom; // Move tail forward
-        }
+        return merged.head; // Return head of the final merged flattened list
     }
 }
