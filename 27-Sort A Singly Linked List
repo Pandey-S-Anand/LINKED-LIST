@@ -42,40 +42,80 @@ class Solution {
 //Optimal approach
 
 class Solution {
-    // Pointers for the merged list head and tail
+    // Pointers to keep track of the head and tail of the merged list during merging
     private ListNode mergedHead;
     private ListNode mergedTail;
 
     public ListNode sortList(ListNode head) {
-        // Base case: If the singly linked list is empty, return null
         if (head == null) {
-            return head;
+            return null; // Empty list is already sorted
         }
-
-        // Perform merge sort on the singly linked list
-        return mergeSort(head);
+        return mergeSort(head); // Call recursive merge sort helper
     }
 
     private ListNode mergeSort(ListNode head) {
-        // Base case: If the singly linked list contains only one node, it is already sorted
+        // Base case: if the list has only one node, it's already sorted
         if (head.next == null) {
             return head;
         }
 
-        // Find the middle node to split the singly linked list into two halves
-        ListNode middleNode = findMiddleNode(head);
-        ListNode secondHalfHead = middleNode.next; // Start of the second half
-        middleNode.next = null; // Break the singly linked list into two parts
+        // Step 1: Find the middle node to split the list into two halves
+        ListNode middle = findMiddleNode(head);
+        ListNode secondHalfHead = middle.next;
 
-        // Recursively sort the left and right halves
-        ListNode leftHead = mergeSort(head);
-        ListNode rightHead = mergeSort(secondHalfHead);
+        // Step 2: Break the link to split the list into two separate lists
+        middle.next = null;
 
-        // Merge the sorted halves
-        merge(leftHead, rightHead);
+        // Step 3: Recursively sort the left half and right half
+        ListNode leftHalfHead = mergeSort(head);
+        ListNode rightHalfHead = mergeSort(secondHalfHead);
 
-        // Return the head of the merged and sorted list
+        // Step 4: Merge the two sorted halves and return the merged sorted list
+        return merge(leftHalfHead, rightHalfHead);
+    }
+
+    private ListNode merge(ListNode head1, ListNode head2) {
+        // Reset the merged list pointers for fresh merge operation
+        mergedHead = mergedTail = null;
+
+        ListNode currentNode1 = head1;
+        ListNode currentNode2 = head2;
+
+        // Iterate while both lists have nodes remaining
+        while (currentNode1 != null && currentNode2 != null) {
+            // Append the smaller node to the merged list
+            if (currentNode1.val <= currentNode2.val) {
+                append(currentNode1);
+                currentNode1 = currentNode1.next; // Move forward in list1
+            } else {
+                append(currentNode2);
+                currentNode2 = currentNode2.next; // Move forward in list2
+            }
+        }
+
+        // Append any remaining nodes from list1 (if any)
+        if (currentNode1 != null) {
+            append(currentNode1);
+        }
+
+        // Append any remaining nodes from list2 (if any)
+        if (currentNode2 != null) {
+            append(currentNode2);
+        }
+
+        // Return the head of the merged sorted linked list
         return mergedHead;
+    }
+
+    private void append(ListNode node) {
+        if (mergedHead == null) {
+            // First node in merged list
+            mergedHead = mergedTail = node;
+        } else {
+            // Link current tail to the new node and update tail
+            mergedTail.next = node;
+            mergedTail = node;
+        }
     }
 
     private ListNode findMiddleNode(ListNode head) {
@@ -89,66 +129,41 @@ class Solution {
             fast = fast.next.next;
         }
 
-        // If the list length is odd, return the middle node
+        /*
+          Explanation:
+          - If 'fast' is NOT null, it means the list length is odd.
+            In this case, 'slow' is exactly at the middle node,
+            so return 'slow' to split after the middle.
+        
+          - If 'fast' is null, it means the list length is even.
+            In this case, 'slow' is at the second middle node,
+            so we return 'slowPrevious' (the first middle node) to split
+            the list into two nearly equal halves.
+        */
         if (fast != null) {
-            return slow;
+            return slow; // Odd length list - middle node
         }
-
-        // If the list length is even, return the first middle node
-        return slowPrevious;
-    }
-
-    private void merge(ListNode head1, ListNode head2) {
-        mergedHead = null;
-        mergedTail = null;
-
-        ListNode currentNode1 = head1;
-        ListNode currentNode2 = head2;
-
-        while (currentNode1 != null && currentNode2 != null) {
-            if (currentNode1.val <= currentNode2.val) {
-                append(currentNode1);
-                currentNode1 = currentNode1.next;
-            } else {
-                append(currentNode2);
-                currentNode2 = currentNode2.next;
-            }
-        }
-
-        if (currentNode1 != null) {
-            append(currentNode1);
-            currentNode1 = currentNode1.next;
-        }
-
-        if (currentNode2 != null) {
-            append(currentNode2);
-            currentNode2 = currentNode2.next;
-        }
-    }
-
-    private void append(ListNode node) {
-        if (mergedHead == null) {
-            mergedHead = mergedTail = node;
-        } else {
-            mergedTail.next = node;
-            mergedTail = mergedTail.next;
-        }
+        return slowPrevious; // Even length list - first middle node
     }
 }
 
 
-// Aliter
-
+//Aliter
 
 class Solution {
-    private ListNode mergedHead;
-    private ListNode mergedTail;
+    private static class NodePair {
+        ListNode head;
+        ListNode tail;
+
+        NodePair() {
+            head = tail = null;
+        }
+    }
 
     public ListNode sortList(ListNode head) {
         if (head == null) {
-            return head;
+            return null;
         }
-
         return mergeSort(head);
     }
 
@@ -157,68 +172,68 @@ class Solution {
             return head;
         }
 
-        ListNode middleNode = findMiddleNode(head);
-        ListNode secondHalfHead = middleNode.next;
-        middleNode.next = null;
+        ListNode middle = findMiddleNode(head);
+        ListNode secondHalfHead = middle.next;
 
-        ListNode leftHead = mergeSort(head);
-        ListNode rightHead = mergeSort(secondHalfHead);
+        middle.next = null;
 
-        merge(leftHead, rightHead);
+        ListNode leftHalfHead = mergeSort(head);
+        ListNode rightHalfHead = mergeSort(secondHalfHead);
 
-        return mergedHead;
+        return merge(leftHalfHead, rightHalfHead);
     }
 
-    private ListNode findMiddleNode(ListNode head) {
-        ListNode slow = head; // Slow pointer starts at the head
-        ListNode fast = head.next; // Fast pointer starts at the second node
-
-        // Traverse the list using two pointers
-        while (fast != null && fast.next != null) {
-            slow = slow.next; // Move the slow pointer one step
-            fast = fast.next.next; // Move the fast pointer two steps
-        }
-
-        // When the loop exits:
-        // - slow points to the middle node (odd-length list)
-        // - slow points to the first middle node (even-length list)
-        return slow;
-    }
-
-    private void merge(ListNode head1, ListNode head2) {
-        mergedHead = null;
-        mergedTail = null;
+    private ListNode merge(ListNode head1, ListNode head2) {
+        NodePair merged = new NodePair();
 
         ListNode currentNode1 = head1;
         ListNode currentNode2 = head2;
 
         while (currentNode1 != null && currentNode2 != null) {
             if (currentNode1.val <= currentNode2.val) {
-                append(currentNode1);
+                append(merged, currentNode1);
                 currentNode1 = currentNode1.next;
             } else {
-                append(currentNode2);
+                append(merged, currentNode2);
                 currentNode2 = currentNode2.next;
             }
         }
 
         if (currentNode1 != null) {
-            append(currentNode1);
-            currentNode1 = currentNode1.next;
+            append(merged, currentNode1);
         }
 
         if (currentNode2 != null) {
-            append(currentNode2);
-            currentNode2 = currentNode2.next;
+            append(merged, currentNode2);
+        }
+
+        return merged.head;
+    }
+
+    private void append(NodePair merged, ListNode node) {
+        if (merged.head == null) {
+            merged.head = merged.tail = node;
+        } else {
+            merged.tail.next = node;
+            merged.tail = node;
         }
     }
 
-    private void append(ListNode node) {
-        if (mergedHead == null) {
-            mergedHead = mergedTail = node;
-        } else {
-            mergedTail.next = node;
-            mergedTail = mergedTail.next;
+    private ListNode findMiddleNode(ListNode head) {
+        ListNode slow = head;
+        ListNode fast = head;
+        ListNode slowPrevious = null;
+
+        while (fast != null && fast.next != null) {
+            slowPrevious = slow;
+            slow = slow.next;
+            fast = fast.next.next;
         }
+
+        if (fast != null) {
+            return slow;
+        }
+
+        return slowPrevious;
     }
 }
