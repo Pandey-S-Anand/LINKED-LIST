@@ -2,13 +2,13 @@
 
 class Solution {
     public int sumOfLastN_Nodes(Node head, int n) {
-        // Step 1: Calculate the total size of the singly linked list
+        // Step 1: Compute the size of the linked list
         int targetIndex = getSize(head) - n;
 
-        // Step 2: Find the Nth node from the end by calculating its index from the start
+        // Step 2: Get the (size - n)th indexed node from the start, which is the start of the last n nodes
         Node nthNode = getNthNode(head, targetIndex);
 
-        // Step 3: Calculate the sum of all nodes from the Nth node to the end
+        // Step 3: Calculate and return the sum from that node to the end
         return sumOfLastNNodes(nthNode);
     }
 
@@ -21,6 +21,7 @@ class Solution {
             size += 2;
         }
 
+        // If list length is odd, add 1 for the remaining node
         if (fast != null) {
             size++;
         }
@@ -52,7 +53,6 @@ class Solution {
 }
 
 
-
 //Optimal approach
 
 class Solution {
@@ -64,11 +64,6 @@ class Solution {
     }
 
     private Node getNthNodeFromEnd(Node head, int n) {
-        // Special case: If the singly linked list is empty, return null
-        if (head == null) {
-            return null;
-        }
-
         // Initialize two pointers, `fast` and `slow`, both starting at the head
         Node fast = head;
         Node slow = head;
@@ -83,8 +78,7 @@ class Solution {
             return head; // Return the head node
         }
 
-        // Move both `fast` and `slow` pointers until `fast` reaches the end
-        // When `fast` becomes null, the `slow` will point to the Nth node from the end
+        // Move both `fast` and `slow` pointers until `fast` reaches the end : When `fast` becomes null, the `slow` will point to the Nth node from the end
         while (fast != null) {
             fast = fast.next;
             slow = slow.next;
