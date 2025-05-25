@@ -2,52 +2,46 @@
 
 class Solution {
     public ListNode removeNthFromEnd(ListNode head, int n) {
-        // 'targetIndex', represents the index of the node to be removed from the beginning of the list.
-        int targetIndex = getSize(head) - n;
+        // Step 1: Find the total number of nodes in the linked list
+        int size = getSize(head);
 
-        /*
-         * Test Case 1: Remove the first node from a list with multiple nodes
-         * Input: [1, 2, 3, 4, 5], n = 5 (remove the first node)
-         * Expected Output: [2, 3, 4, 5]
-         * Explanation: Since n = 5, the target index is 0, so the first node (1) will be removed.
-         * 
-         * Test Case 2: Remove the only node in the list
-         * Input: [1], n = 1 (remove the only node)
-         * Expected Output: []
-         * Explanation: Since there's only one node and n = 1, the head node (1) will be removed, leaving the list empty.
-         */
-        // Special case: If we need to remove the head of the list
+        // Step 2: Calculate the index (from the start) of the node to be removed
+        int targetIndex = size - n;
+
+        // Edge case: If the head node is to be removed
         if (targetIndex == 0) {
-            head = head.next;
-            return head;
+            return head.next; // Return the next node as the new head
         }
 
+        // Step 3: Traverse to the target node (the one to be deleted)
         ListNode currentNode = head;
-
-        // Traverse to the node just before the target node
-        while (targetIndex > 1) {
+        ListNode prevNode = null;
+        while (targetIndex > 0) {
+            prevNode = currentNode;
             currentNode = currentNode.next;
             targetIndex--;
         }
 
-        // Skip the node to remove
-        currentNode.next = currentNode.next.next;
+        // Step 4: Remove the target node by skipping it
+        prevNode.next = prevNode.next.next;
+        currentNode.next = null; // Optional: disconnect for garbage collection
 
+        // Step 5: Return the head of the list
         return head;
     }
 
     private int getSize(ListNode head) {
+        ListNode slow = head;
+        ListNode fast = head;
         int size = 0;
-        ListNode slowPointer = head;
-        ListNode fastPointer = head;
 
-        while (fastPointer != null && fastPointer.next != null) {
-            slowPointer = slowPointer.next;
-            fastPointer = fastPointer.next.next;
+        while (fast != null && fast.next != null) {
+            slow = slow.next;
+            fast = fast.next.next;
             size += 2;
         }
 
-        if (fastPointer != null) {
+        if (fast != null) {
             size++;
         }
 
