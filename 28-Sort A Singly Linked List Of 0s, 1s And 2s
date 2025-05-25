@@ -2,13 +2,16 @@
 
 class Solution {
     static Node segregate(Node head) {
+        // Initialize currentNode to traverse the linked list
         Node currentNode = head;
-        int count0 = 0;
-        int count1 = 0;
-        int count2 = 0;
+        
+        // Counters for number of 0s, 1s, and 2s in the list
+        int count0 = 0, count1 = 0, count2 = 0;
 
+        // First traversal: count the occurrences of 0, 1 and 2
         while (currentNode != null) {
             int value = currentNode.data;
+
             if (value == 0) {
                 count0++;
             } else if (value == 1) {
@@ -17,26 +20,32 @@ class Solution {
                 count2++;
             }
 
+            // Move to the next node
             currentNode = currentNode.next;
         }
 
+        // Reset currentNode to the head of the list for second traversal
         currentNode = head;
 
+        // Second traversal: overwrite node data with 0s, count0 times
         while (count0-- > 0) {
             currentNode.data = 0;
             currentNode = currentNode.next;
         }
 
+        // Continue overwriting with 1s, count1 times
         while (count1-- > 0) {
             currentNode.data = 1;
             currentNode = currentNode.next;
         }
 
+        // Finally, overwrite with 2s, count2 times
         while (count2-- > 0) {
             currentNode.data = 2;
             currentNode = currentNode.next;
         }
 
+        // Return the head of the sorted linked list
         return head;
     }
 }
@@ -46,83 +55,101 @@ class Solution {
 //Optimal Approach
 
 class Solution {
-    static Node zeroHead, oneHead, twoHead, zeroTail, oneTail, twoTail;
+    // Head and tail pointers for each group
+    private Node zeroHead, oneHead, twoHead;
+    private Node zeroTail, oneTail, twoTail;
 
-    static Node segregate(Node head) {
-        zeroHead = oneHead = twoHead = zeroTail = oneTail = twoTail = null;
+    Node segregate(Node head) {
         Node currentNode = head;
 
-        // Traverse the original singly linked list and segregate nodes into three groups.
+        // Step 1: Traverse and divide nodes into corresponding groups
         while (currentNode != null) {
             int value = currentNode.data;
 
             if (value == 0) {
-                appendNode(currentNode, 0); // Append the node to the 0s group.
+                append(currentNode, 0);
             } else if (value == 1) {
-                appendNode(currentNode, 1); // Append the node to the 1s group.
+                append(currentNode, 1);
             } else {
-                appendNode(currentNode, 2); // Append the node to the 2s group.
+                append(currentNode, 2);
             }
 
-            // Move to the next node in the singly linked list.
             currentNode = currentNode.next;
         }
 
-        // Connect the three groups of nodes to form the sorted singly linked list.
+        // Step 2: Prevent cycles by terminating the current group tails
+        if (zeroTail != null) {
+            zeroTail.next = null;
+        }
+        if (oneTail != null) {
+            oneTail.next = null;
+        }
+        if (twoTail != null) {
+            twoTail.next = null;
+        }
+
+        // Step 3: Connect the separated groups and return the new head
         return connectGroups();
     }
 
-    private static void appendNode(Node node, int group) {
+    private void append(Node node, int group) {
         if (group == 0) {
-            if (zeroTail == null) {
-                zeroHead = zeroTail = node; // If the group is empty, the node becomes both head and tail.
+            if (zeroHead == null) {
+                zeroHead = zeroTail = node;
             } else {
                 zeroTail.next = node;
-                zeroTail = node; // Update the tail of the 0s group.
+                zeroTail = node;
             }
         } else if (group == 1) {
-            if (oneTail == null) {
-                oneHead = oneTail = node; // If the group is empty, the node becomes both head and tail.
+            if (oneHead == null) {
+                oneHead = oneTail = node;
             } else {
                 oneTail.next = node;
-                oneTail = node; // Update the tail of the 1s group.
+                oneTail = node;
             }
-        } else {
-            if (twoTail == null) {
-                twoHead = twoTail = node; // If the group is empty, the node becomes both head and tail.
+        } else { // group == 2
+            if (twoHead == null) {
+                twoHead = twoTail = node;
             } else {
                 twoTail.next = node;
-                twoTail = node; // Update the tail of the 2s group.
+                twoTail = node;
             }
         }
     }
 
-    private static Node connectGroups() {
+    private Node connectGroups() {
+        // Case 1: 0s are present
         if (zeroTail != null) {
-            zeroTail.next = (oneHead != null) ? oneHead : twoHead; // Connect the 0s group to the 1s or 2s group.
+            if (oneHead == null && twoHead == null) {
+                return zeroHead; // Only 0s present
+            }
+
+            if (oneHead != null && twoHead != null) { // 0s, 1s, and 2s present
+                zeroTail.next = oneHead;
+                oneTail.next = twoHead;
+            } else if (oneHead == null) { // 0s and 2s present
+                zeroTail.next = twoHead;
+            } else { // 0s and 1s present
+                zeroTail.next = oneHead;
+            }
+
+            return zeroHead;
         }
 
+        // Case 2: 0s absent, 1s are present
         if (oneTail != null) {
-            oneTail.next = twoHead; // Connect the 1s group to the 2s group.
+            if (twoHead != null) { // 1s and 2s present
+                oneTail.next = twoHead;
+            }
+            return oneHead; // Only 1s present
         }
 
+        // Case 3: Only 2s present
         if (twoTail != null) {
-            twoTail.next = null; // Terminate the singly linked list.
+            return twoHead;
         }
 
-        // Determine the new head of the sorted singly linked list
-        return determineHead();
-    }
-
-    private static Node determineHead() {
-        if (zeroHead != null) {
-            return zeroHead; // Head of the 0s group becomes the new head.
-        }
-
-        if (oneHead != null) {
-            return oneHead; // Head of the 1s group becomes the new head.
-        }
-
-        return twoHead; // Head of the 2s group becomes the new head.
+        // Case 4: Empty list (head was null)
+        return null;
     }
 }
