@@ -13,61 +13,71 @@
  
 class Solution {
     public ListNode reverseKGroup(ListNode head, int k) {
-        if (head == null || k == 1) { // If the singly linked list is empty or k is 1, no need to reverse the nodes. 
-            return head;
+        if (k == 1) {
+            return head; // No need to reverse if k == 1 
         }
 
-        // Step 1: Reverse the first k-group separately
-        ListNode firstKthNode = findKthNode(head, k);
-        if (firstKthNode == null) {
-            return head; // If not enough nodes, return as is.
-        }
+        // Step 1: Reverse the first k nodes separately
+        ListNode kthNode = findKthNodeIfPresent(head, k); // Get the kth node from the first group (i.e tail of first group)
+        ListNode nextGroupHead = kthNode.next; // Save the next group's head
+        kthNode.next = null; // Temporarily break the list to isolate the first k nodes
 
-        ListNode nextGroupStart = firstKthNode.next;
-        firstKthNode.next = null; // Temporarily break the link
-        ListNode newHead = reverse(head); // Reverse first k nodes
+        /* 🔁 Important: After reversing k nodes:
+        - The original head of the group becomes the tail
+        - The kth node (tail of the group before reversal) becomes the new head
+        */
+        reverseList(head); // Reverse the first k nodes
 
-        // Step 2: Process remaining groups
-        ListNode prevGroupEnd = head; // The last node/tail of reversed first group
-        ListNode currentNode = nextGroupStart;
+        ListNode newHead = kthNode; // After reversing, kthNode becomes new head (was originally tail)
+        head.next = nextGroupHead; // Connect the tail (was originally head) to the next group head
+        ListNode lastGroupTail = head; // Update lastGroupTail to point to the first group tail (i.e originally head)
+
+        // Step 2: Process the rest of the list group by group
+        ListNode currentNode = nextGroupHead;
 
         while (currentNode != null) {
-            ListNode kthNode = findKthNode(currentNode, k);
+            // Try to get the kth node in the next group
+            kthNode = findKthNodeIfPresent(currentNode, k);
             if (kthNode == null) {
-                break; // Not enough nodes left, stop
+                break; // Less than k nodes left — no more reversal
             }
 
-            nextGroupStart = kthNode.next;
-            kthNode.next = null; // Temporarily break the link
-            ListNode reversedHead = reverse(currentNode);
+            nextGroupHead = kthNode.next; // Save the head of the next group
+            kthNode.next = null; // Break the current group from the rest
 
-            prevGroupEnd.next = reversedHead; // Connect previous group to reversed list
-            prevGroupEnd = currentNode; // Update prevGroupEnd to the last node of reversed group
-            currentNode = nextGroupStart; // Move to the next group
+            reverseList(currentNode); // Reverse current k-group
+
+            lastGroupTail.next = kthNode; // Link the last group tail to current group's head (was originally tail)
+            lastGroupTail = currentNode; // Update the tail pointer to current group's tail (was originally head)
+
+            currentNode = nextGroupHead; // Move to the next group
         }
 
-        prevGroupEnd.next = currentNode; // Attach remaining nodes if any
-        return newHead;
+        // Attach any remaining nodes (less than k) at the end
+        lastGroupTail.next = currentNode;
+
+        return newHead; // Return the head of the fully processed list
     }
 
-    private ListNode findKthNode(ListNode head, int k) {
-        int count = 1;
-        while (head != null && count < k) {
-            head = head.next;
-            count++;
+    private ListNode findKthNodeIfPresent(ListNode head, int k) {
+        ListNode currentNode = head;
+        while (currentNode != null && k > 1) {
+            currentNode = currentNode.next;
+            k--;
         }
-        return head; // Return the k-th node (or null if not enough nodes)
+        return currentNode; // Return the k-th node (or null if not enough nodes)
     }
 
-    private ListNode reverse(ListNode head) {
-        ListNode prevNode = null, currentNode = head;
+    private void reverseList(ListNode head) {
+        ListNode prevNode = null;
+        ListNode currentNode = head;
+
         while (currentNode != null) {
             ListNode nextNode = currentNode.next;
             currentNode.next = prevNode;
             prevNode = currentNode;
             currentNode = nextNode;
         }
-        return prevNode; // New head of reversed singly linked list
     }
 }
 
@@ -76,58 +86,61 @@ class Solution {
 
 class Solution {
     public ListNode reverseKGroup(ListNode head, int k) {
-        if (head == null || k == 1) {
+        if (k == 1) {
             return head;
         }
 
-        ListNode prevGroupEnd = null;
         ListNode currentNode = head;
+        ListNode lastGroupTail = null;
 
         while (currentNode != null) {
-            ListNode kthNode = findKthNode(currentNode, k);
+            ListNode kthNode = findKthNodeIfPresent(currentNode, k);
             if (kthNode == null) {
                 break;
             }
 
-            ListNode nextGroupStart = kthNode.next;
+            ListNode nextGroupHead = kthNode.next;
             kthNode.next = null;
-            ListNode reversedHead = reverse(currentNode);
 
-            // If it's the first group, the reversed head becomes the new head of the list
-            if (prevGroupEnd == null) {
-                head = reversedHead;
-            }
-            
-            // For the second group and onwards, connect the previous group's last node to the head of the reversed current group
-            if (prevGroupEnd != null) {
-                prevGroupEnd.next = reversedHead;
+            reverseList(currentNode);
+
+            // Set head to the new head of the first reversed group (originally the kth node, i.e., the tail of the first group)
+            if (lastGroupTail == null) {
+                head = kthNode;
             }
 
-            prevGroupEnd = currentNode;
-            currentNode = nextGroupStart;
+            if (lastGroupTail != null) {
+                lastGroupTail.next = kthNode;
+            }
+
+            lastGroupTail = currentNode;
+
+            currentNode = nextGroupHead;
         }
 
-        prevGroupEnd.next = currentNode;
+        lastGroupTail.next = currentNode;
+
         return head;
     }
 
-    private ListNode findKthNode(ListNode head, int k) {
-        int count = 1;
-        while (head != null && count < k) {
-            head = head.next;
-            count++;
+    private ListNode findKthNodeIfPresent(ListNode head, int k) {
+        ListNode currentNode = head;
+        while (currentNode != null && k > 1) {
+            currentNode = currentNode.next;
+            k--;
         }
-        return head;
+        return currentNode;
     }
 
-    private ListNode reverse(ListNode head) {
-        ListNode prevNode = null, currentNode = head;
+    private void reverseList(ListNode head) {
+        ListNode prevNode = null;
+        ListNode currentNode = head;
+
         while (currentNode != null) {
             ListNode nextNode = currentNode.next;
             currentNode.next = prevNode;
             prevNode = currentNode;
             currentNode = nextNode;
         }
-        return prevNode;
     }
 }
