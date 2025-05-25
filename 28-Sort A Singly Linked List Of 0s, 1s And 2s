@@ -55,98 +55,88 @@ class Solution {
 //Optimal Approach
 
 class Solution {
-    // Head and tail pointers for each group
-    private Node zeroHead, oneHead, twoHead;
-    private Node zeroTail, oneTail, twoTail;
+    private static class NodePair {
+        private Node head;
+        private Node tail;
+        
+        // Appends a node to this group while maintaining head and tail pointers
+        void append(Node node) {
+            if (head == null) {
+                head = tail = node;
+            } else {
+                tail.next = node;
+                tail = node;
+            }
+        }
+    }
 
     Node segregate(Node head) {
-        Node currentNode = head;
+        // Create separate NodePair containers for each group
+        NodePair zeroGroup = new NodePair();
+        NodePair oneGroup = new NodePair();
+        NodePair twoGroup = new NodePair();
 
-        // Step 1: Traverse and divide nodes into corresponding groups
-        while (currentNode != null) {
-            int value = currentNode.data;
+        Node current = head;
 
-            if (value == 0) {
-                append(currentNode, 0);
-            } else if (value == 1) {
-                append(currentNode, 1);
+        // Step 1: Distribute nodes into zeroGroup, oneGroup, and twoGroup
+        while (current != null) {
+            if (current.data == 0) {
+                zeroGroup.append(current);
+            } else if (current.data == 1) {
+                oneGroup.append(current);
             } else {
-                append(currentNode, 2);
+                twoGroup.append(current);
             }
-
-            currentNode = currentNode.next;
+            current = current.next;
         }
-
+        
         // Step 2: Prevent cycles by terminating the current group tails
-        if (zeroTail != null) {
-            zeroTail.next = null;
+        if (zeroGroup.tail != null) {
+            zeroGroup.tail.next = null;
         }
-        if (oneTail != null) {
-            oneTail.next = null;
+        
+        if (oneGroup.tail != null) {
+            oneGroup.tail.next = null;
         }
-        if (twoTail != null) {
-            twoTail.next = null;
+        
+        if (twoGroup.tail != null) {
+            twoGroup.tail.next = null;
         }
 
-        // Step 3: Connect the separated groups and return the new head
-        return connectGroups();
+        // Step 2: Connect the three groups using a dedicated function
+        return connectGroups(zeroGroup, oneGroup, twoGroup);
     }
 
-    private void append(Node node, int group) {
-        if (group == 0) {
-            if (zeroHead == null) {
-                zeroHead = zeroTail = node;
-            } else {
-                zeroTail.next = node;
-                zeroTail = node;
-            }
-        } else if (group == 1) {
-            if (oneHead == null) {
-                oneHead = oneTail = node;
-            } else {
-                oneTail.next = node;
-                oneTail = node;
-            }
-        } else { // group == 2
-            if (twoHead == null) {
-                twoHead = twoTail = node;
-            } else {
-                twoTail.next = node;
-                twoTail = node;
-            }
-        }
-    }
-
-    private Node connectGroups() {
+    private Node connectGroups(NodePair zeroGroup, NodePair oneGroup, NodePair twoGroup) {
         // Case 1: 0s are present
-        if (zeroTail != null) {
-            if (oneHead == null && twoHead == null) {
-                return zeroHead; // Only 0s present
+        if (zeroGroup.head != null) {
+            if (oneGroup.head == null && twoGroup.head == null) {
+                return zeroGroup.head; // Only 0s present
             }
 
-            if (oneHead != null && twoHead != null) { // 0s, 1s, and 2s present
-                zeroTail.next = oneHead;
-                oneTail.next = twoHead;
-            } else if (oneHead == null) { // 0s and 2s present
-                zeroTail.next = twoHead;
+            if (oneGroup.head != null && twoGroup.head != null) { // 0s, 1s, and 2s present
+                zeroGroup.tail.next = oneGroup.head;
+                oneGroup.tail.next = twoGroup.head;
+            } else if (oneGroup.head == null) { // 0s and 2s present
+                zeroGroup.tail.next = twoGroup.head;
             } else { // 0s and 1s present
-                zeroTail.next = oneHead;
+                zeroGroup.tail.next = oneGroup.head;
             }
 
-            return zeroHead;
+            return zeroGroup.head;
         }
 
         // Case 2: 0s absent, 1s are present
-        if (oneTail != null) {
-            if (twoHead != null) { // 1s and 2s present
-                oneTail.next = twoHead;
+        if (oneGroup.tail != null) {
+            if (twoGroup.head != null) { // 1s and 2s present
+                oneGroup.tail.next = twoGroup.head;
             }
-            return oneHead; // Only 1s present
+            return oneGroup.head; // Only 1s present
         }
 
         // Case 3: Only 2s present
-        if (twoTail != null) {
-            return twoHead;
+        if (twoGroup.tail != null) {
+            return twoGroup.head;
         }
 
         // Case 4: Empty list (head was null)
