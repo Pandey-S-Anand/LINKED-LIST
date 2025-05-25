@@ -59,70 +59,62 @@ class Solution {
 //Better Approach
  
 class Solution {
-    // Pointers to maintain separate lists for even-indexed and odd-indexed nodes
-    private ListNode evenHead;
-    private ListNode evenTail;
-    private ListNode oddHead;
-    private ListNode oddTail;
+    private static class NodePair {
+        private ListNode head;
+        private ListNode tail;
+
+        NodePair() {
+            head = tail = null;
+        }
+
+        private void append(ListNode node) {
+            if (head == null) {
+                head = tail = node;
+            } else {
+                tail.next = node;
+                tail = node;
+            }
+        }
+    }
 
     public ListNode oddEvenList(ListNode head) {
         // Base case: If the list is empty or contains only one node, return as-is
         if (head == null || head.next == null) {
             return head;
         }
+        
+        // Two separate lists for odd-indexed and even-indexed nodes
+        NodePair oddList = new NodePair();
+        NodePair evenList = new NodePair();
 
-        ListNode currentNode = head;     // Pointer to traverse the original list
-        ListNode prevNode = null;        // Used to break existing links in original list
-        boolean isOddIndex = true;       // Tracks whether current position is odd
+        ListNode currentNode = head; // Pointer to traverse the original list
+        boolean isOddIndex = true; // Tracks whether current position is odd
 
         while (currentNode != null) {
             // Append the current node to either the odd or even list
             if (isOddIndex) {
-                append(currentNode, false); // false → odd
+                oddList.append(currentNode);
             } else {
-                append(currentNode, true);  // true → even
+                evenList.append(currentNode);
             }
 
             isOddIndex = !isOddIndex; // Flip the flag for the next node
-
-            /*
-             * Disconnect the previous node from the current node to break
-             * any leftover 'next' references from the original list.
-             * This is crucial to avoid cross-linking and prevent cycles
-             * when reconstructing the final linked list.
-             */
-            if (prevNode != null) {
-                prevNode.next = null;
-            }
-
-            // Advance both pointers
-            prevNode = currentNode;
             currentNode = currentNode.next;
         }
 
+        /*
+        * Ensure both odd and even lists are properly terminated.
+        * This step is essential to avoid cycles caused by
+        * leftover 'next' pointers from the original list.
+        */
+        oddList.tail.next = null;
+        evenList.tail.next = null;
+
         // After segregation, link the last node of the odd list to the head of the even list
-        oddTail.next = evenHead;
+        oddList.tail.next = evenList.head;
 
         // Return the modified list starting with the odd-indexed nodes
-        return oddHead;
-    }
-
-    private void append(ListNode node, boolean isEven) {
-        if (isEven) {
-            if (evenHead == null) {
-                evenHead = evenTail = node;
-            } else {
-                evenTail.next = node;
-                evenTail = node;
-            }
-        } else {
-            if (oddHead == null) {
-                oddHead = oddTail = node;
-            } else {
-                oddTail.next = node;
-                oddTail = node;
-            }
-        }
+        return oddList.head;
     }
 }
 
