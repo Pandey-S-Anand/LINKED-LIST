@@ -1,46 +1,113 @@
+//Bruteforce approach
+
 class Solution {
-    public Node addOne(Node num) {
-        if (num == null) {
-            return new Node(1); // If the number is empty, return a new node with value 1
+    // Helper class to build the resulting list by inserting digits at the front
+    private static class SinglyLinkedList {
+        private Node head;
+
+        SinglyLinkedList() {
+            head = null;
         }
 
-        // Step 1: Reverse the singly linked list to simplify addition from right to left
-        Node reversedNumber = reverse(num);
-
-        Node num1 = reversedNumber; // Pointer to traverse the reversed singly linked list
-        Node prevNode = null; // To keep track of the last node (needed for adding a new node in case of overflow)
-        int carry = 1; // Start with carry 1 to simulate adding 1
-
-        // Step 2: Add 1 and handle carry through the singly linked list
-        while (num1 != null && carry == 1) {
-            int sum = num1.data + carry; // Add carry to the current node's value
-            carry = sum / 10; // Calculate the carry for the next node
-            num1.data = sum % 10; // Update the current node's data with the digit (sum's unit place value)
-            prevNode = num1; // Update prevNode to the current node
-            num1 = num1.next; // Move to the next node in the list
+        // Inserts a new digit node at the front of the list
+        public void insertAtFront(int num) {
+            Node node = new Node(num);
+            node.next = head;
+            head = node;
         }
+    }
 
-        // If carry is still 1, it means the number consisted of all 9's like 999...
-        // In this case, we add a new node at the end with the carry value
+    public Node addOne(Node head) {
+        // Step 1: Reverse the original list to process from least significant digit
+        Node currentNode = reverse(head);
+
+        SinglyLinkedList sum = new SinglyLinkedList();
+        int base = 0, digitSum = 0, carry = 1; // Initialize carry as 1 to add one to the number
+
+        // Step 2: Traverse reversed list and compute digit-wise sum
+        while (currentNode != null) {
+            digitSum = currentNode.data + carry;
+            base = digitSum % 10;        // New digit to store
+            carry = digitSum / 10;       // Carry to propagate
+
+            sum.insertAtFront(base);     // Build result in correct order by inserting at front
+            currentNode = currentNode.next;
+        }
+        
+        // Step 3: If carry remains (e.g., adding 1 to 999), insert new digit
         if (carry == 1) {
-            prevNode.next = new Node(carry);
+            sum.insertAtFront(1);
         }
 
-        // Step 3: Reverse the singly linked list again to restore the original order
-        return reverse(reversedNumber); // Return the resultant number after reversing back
+        // Step 4: Return the result list's head
+        return sum.head;
     }
 
     private Node reverse(Node head) {
         Node prevNode = null;
-        Node num1 = head;
+        Node currentNode = head;
 
-        while (num1 != null) {
-            Node nextNode = num1.next; // Save the next node
-            num1.next = prevNode; // Reverse the link
-            prevNode = num1; // Move prevNode forward
-            num1 = nextNode; // Move num1 forward
+        while (currentNode != null) {
+            Node nextNode = currentNode.next;
+            currentNode.next = prevNode;    
+            prevNode = currentNode;        
+            currentNode = nextNode;
         }
 
-        return prevNode; // Return prevNode, which now points to the head of the reversed list
+        return prevNode; // New head after reversal (was tail in the original linked list)
+    }
+}
+
+
+//Optimal approach
+
+class Solution {
+    public Node addOne(Node head) {
+        // Step 1: Reverse the linked list so we can add from the least significant digit
+        Node newHead = reverse(head);
+        Node currentNode = newHead;
+
+        int digitSum = 0, carry = 1; // Initialize carry as 1 for the "+1" addition
+
+        /* 
+         * Step 2: Traverse the reversed list while there is a carry to add.
+         * The condition 'carry == 1' is an optimization:
+         * once carry becomes 0, no further digits will change,
+         * so we can stop early instead of overwriting the remaining nodes unnecessarily.
+         */
+        while (currentNode != null && carry == 1) {
+            digitSum = currentNode.data + carry;      // Add carry to current digit
+            currentNode.data = digitSum % 10;         // Update node with new digit after addition
+            carry = digitSum / 10;                    // Calculate carry for the next node
+            currentNode = currentNode.next;            // Move to next node
+        }
+
+        /* 
+         * Step 3: If carry remains after processing all digits,
+         * it means we've finished traversing the reversed list (which started from the original list's tail),
+         * so the original head node is now the tail of the reversed list.
+         * We add a new node with value 1 *after* this tail node (i.e., head of the original list)
+         * to account for the leftover carry (e.g., adding 1 to 999 results in 1000).
+         */
+        if (carry == 1) {
+            head.next = new Node(1);
+        }
+
+        // Step 4: Reverse the list back to restore the original order, now updated with the +1 added
+        return reverse(newHead);
+    }
+
+    private Node reverse(Node head) {
+        Node prevNode = null;
+        Node currentNode = head;
+
+        while (currentNode != null) {
+            Node nextNode = currentNode.next;  
+            currentNode.next = prevNode;       
+            prevNode = currentNode;             
+            currentNode = nextNode;          
+        }
+
+        return prevNode; // New head after reversal (tail in the original linked list)
     }
 }
