@@ -10,64 +10,70 @@
  */
 
 /* 
-CRUX:
-
-- The extra nodes should be distributed in the initial parts only.
-- The reason we are assigning only one extra node per part is because the question specifies that each of the k parts should not have a size difference of more than one.
-- The nodes should maintain the order of appearance in the original list.
-*/
+ * CRUX:
+ * 
+ * - Extra nodes (when total size is not perfectly divisible by k) must be distributed among the first 'extraNodes' partitions.
+ * - This ensures that the size difference between any two parts is at most one, as required by the problem.
+ * - The order of nodes in the original linked list must be preserved in the resulting parts.
+ */
 
 class Solution {
+    // Splits a singly linked list into k parts as evenly as possible
     public ListNode[] splitListToParts(ListNode head, int k) {
-        ListNode[] splits = new ListNode[k]; // Array to store the k parts
-        ListNode current = head; // Current node being processed
-        ListNode previous = null; // Tail node in each part
-        int index = 0; // Index to store each part in the splits array
-        int totalSize = getSize(head); // Get the total size of the linked list
+        ListNode[] partitions = new ListNode[k]; // Result array to store each part's head
+        int index = 0;
 
-        int nodesPerPart = totalSize / k; // Number of nodes each part should have
-        int extraNodes = totalSize % k; // Number of extra nodes to distribute
+        // Step 1: Calculate total size of the list
+        int size = getSize(head);
 
-        // Iterate through the singly linked list and split it into parts
-        while (current != null) {
-            splits[index++] = head; // Assign the head of the current part to the result array
+        // Step 2: Calculate minimum nodes in each part and how many extra nodes we need to distribute
+        int minNodesPerPartition = size / k;
+        int extraNodes = size % k;
 
-            // Traverse to the end of the current part
-            for (int count = 1; count <= nodesPerPart; count++) {
-                previous = current;
-                current = current.next;
+        ListNode currentPartitionHead = head;
+
+        // Step 3: Build each partition one by one
+        while (currentPartitionHead != null) {
+            partitions[index++] = currentPartitionHead; // Assign the current part's head
+            ListNode prevNode = null;
+            ListNode currentNode = currentPartitionHead;
+
+            // Traverse minNodesPerPartition nodes
+            for (int i = 1; i <= minNodesPerPartition; i++) {
+                prevNode = currentNode;
+                currentNode = currentNode.next;
             }
 
-            // If there are extra nodes, assign one extra node to the current part
+            // If extra nodes are remaining, add one more node to this part
             if (extraNodes > 0) {
-                previous = current;
-                current = current.next;
+                prevNode = currentNode;
+                currentNode = currentNode.next;
                 extraNodes--;
             }
 
-            // Disconnect the current part from the next part
-            previous.next = null;
+            // Cut off the current part from the rest of the list
+            prevNode.next = null;
 
-            // Move the head pointer to the start of next part
-            head = current;
+            // Move to the next part
+            currentPartitionHead = currentNode;
         }
 
-        return splits;
+        return partitions;
     }
 
     private int getSize(ListNode head) {
         ListNode fast = head;
-        int totalSize = 0;
+        int size = 0;
 
         while (fast != null && fast.next != null) {
             fast = fast.next.next;
-            totalSize += 2;
+            size += 2;
         }
 
         if (fast != null) {
-            totalSize++;
+            size++;
         }
 
-        return totalSize;
+        return size;
     }
 }
