@@ -13,78 +13,102 @@
 //Bruteforce approach
 
 class Solution {
-    public ListNode mergeKLists(ListNode[] lists) {
-        List<Integer> values = extractValues(lists); // Extract all node values from the lists
-        Collections.sort(values); // Sort the collected node values
-        return buildSortedSinglyLinkedList(values); // Construct the sorted singly linked list
+    private static class NodePair {
+        private ListNode head;
+        private ListNode tail;
+
+        public void append(ListNode node) {
+            if (head == null) {
+                head = tail = node;
+            } else {
+                tail.next = node;
+                tail = node;
+            }
+        }
     }
 
-    private List<Integer> extractValues(ListNode[] lists) {
-        List<Integer> values = new ArrayList<>();
+    public ListNode mergeKLists(ListNode[] lists) {
+        if (lists.length == 0) {
+            return null; // No lists to merge, return null
+        }
 
-        for (ListNode head : lists) {
-            ListNode currentNode = head;
+        return mergeKLists(lists, 0);
+    }
 
-            while (currentNode != null) {
-                values.add(currentNode.val);
-                currentNode = currentNode.next;
+    private ListNode mergeKLists(ListNode[] lists, int index) {
+        // Base case: if at last list, return it directly
+        if (index == lists.length - 1) {
+            return lists[index];
+        }
+
+        // Recursively merge the remaining lists to the right
+        ListNode mergedRemainingLists = mergeKLists(lists, index + 1);
+
+        // Merge current list with the merged remaining lists
+        return merge(lists[index], mergedRemainingLists);
+    }
+
+    private ListNode merge(ListNode head1, ListNode head2) {
+        NodePair merged = new NodePair();
+
+        ListNode currentNode1 = head1;
+        ListNode currentNode2 = head2;
+
+        // Traverse both lists and append the smaller node each time
+        while (currentNode1 != null && currentNode2 != null) {
+            int val1 = currentNode1.val;
+            int val2 = currentNode2.val;
+
+            if (val1 <= val2) {
+                merged.append(currentNode1);
+                currentNode1 = currentNode1.next;
+            } else {
+                merged.append(currentNode2);
+                currentNode2 = currentNode2.next;
             }
         }
 
-        return values;
-    }
-
-    private ListNode buildSortedSinglyLinkedList(List<Integer> sortedValues) {
-        SinglyLinkedList singlyLinkedList = new SinglyLinkedList();
-
-        for (int value : sortedValues) {
-            singlyLinkedList.append(value);
+        // Append any remaining nodes from list1
+        if (currentNode1 != null) {
+            merged.append(currentNode1);
         }
 
-        return singlyLinkedList.getHead();
-    }
-}
-
-class SinglyLinkedList {
-    private ListNode head;
-    private ListNode tail;
-
-    public ListNode getHead() {
-        return head;
-    }
-
-    public void append(int value) {
-        ListNode newNode = new ListNode(value);
-        if (head == null) {
-            head = tail = newNode;
-        } else {
-            tail.next = newNode;
-            tail = newNode;
+        // Append any remaining nodes from list2
+        if (currentNode2 != null) {
+            merged.append(currentNode2);
         }
+
+        return merged.head;
     }
 }
-
 
 
 //Optimal appraoch 
 
-//Method 1
-
 class Solution {
-    private ListNode mergedHead; // Stores the head of the merged singly linked list
-    private ListNode mergedTail; // Stores the tail of the merged singly linked list
+    private static class NodePair {
+        private ListNode head;
+        private ListNode tail;
 
-    public ListNode mergeKLists(ListNode[] lists) {
-        // Edge case: If there are no singly linked lists, return null
-        if (lists.length == 0) {
-            return null;
+        public void append(ListNode node) {
+            if (head == null) {
+                head = tail = node;
+            } else {
+                tail.next = node;
+                tail = node;
+            }
         }
-
-        // Use divide-and-conquer to merge all sorted singly linked lists
-        return mergeSortedSinglyLinkedLists(lists, 0, lists.length - 1);
     }
 
-    private ListNode mergeSortedSinglyLinkedLists(ListNode[] lists, int left, int right) {
+    public ListNode mergeKLists(ListNode[] lists) {
+        if (lists.length == 0) {
+            return null; // No lists to merge, return null
+        }
+
+        return mergeKLists(lists, 0, lists.length - 1);
+    }
+
+    private ListNode mergeKLists(ListNode[] lists, int left, int right) {
         // Base case: If there is only one singly linked list, return it
         if (left == right) {
             return lists[left];
@@ -94,106 +118,43 @@ class Solution {
         int mid = left + (right - left) / 2;
 
         // Recursively merge the left and right halves
-        ListNode leftPartHead = mergeSortedSinglyLinkedLists(lists, left, mid);
-        ListNode rightPartHead = mergeSortedSinglyLinkedLists(lists, mid + 1, right);
+        ListNode leftPartHead = mergeKLists(lists, left, mid);
+        ListNode rightPartHead = mergeKLists(lists, mid + 1, right);
 
         // Merge the two sorted singly linked lists and return the merged list head
-        merge(leftPartHead, rightPartHead);
-        return mergedHead;
+        return merge(leftPartHead, rightPartHead);
     }
 
-    private void merge(ListNode head1, ListNode head2) {
-        mergedHead = mergedTail = null;
+    private ListNode merge(ListNode head1, ListNode head2) {
+        NodePair merged = new NodePair();
+
         ListNode currentNode1 = head1;
         ListNode currentNode2 = head2;
 
+        // Traverse both lists and append the smaller node each time
         while (currentNode1 != null && currentNode2 != null) {
             int val1 = currentNode1.val;
             int val2 = currentNode2.val;
 
             if (val1 <= val2) {
-                append(currentNode1);
+                merged.append(currentNode1);
                 currentNode1 = currentNode1.next;
             } else {
-                append(currentNode2);
+                merged.append(currentNode2);
                 currentNode2 = currentNode2.next;
             }
         }
 
+        // Append any remaining nodes from list1
         if (currentNode1 != null) {
-            append(currentNode1);
-            currentNode1 = currentNode1.next;
+            merged.append(currentNode1);
         }
 
+        // Append any remaining nodes from list2
         if (currentNode2 != null) {
-            append(currentNode2);
-            currentNode2 = currentNode2.next;
-        }
-    }
-
-    private void append(ListNode node) {
-        if (mergedHead == null) {
-            mergedHead = mergedTail = node;
-        } else {
-            mergedTail.next = node;
-            mergedTail = mergedTail.next;
-        }
-    }
-}
-
-
-//Method 2
-
-class Solution {
-    public ListNode mergeKLists(ListNode[] lists) {
-        // Edge case: If there are no linked lists, return null
-        if (lists.length == 0) {
-            return null;
+            merged.append(currentNode2);
         }
 
-        /*
-         * Min-Heap (Priority Queue) to store the nodes in sorted order
-         * The heap maintains the order of nodes based on their value (ascending order)
-         */
-        PriorityQueue<ListNode> minHeap = new PriorityQueue<>((node1, node2) -> node1.val - node2.val);
-
-        // Step 1: Add the head of each non-empty singly linked list to the heap
-        for (ListNode head : lists) {
-            if (head != null) {
-                minHeap.offer(head);
-            }
-        }
-
-        // If the heap is empty after adding nodes, return null
-        if (minHeap.isEmpty()) {
-            return null;
-        }
-
-        // Step 2: Extract the first node to start the merged singly linked list
-        ListNode mergedHead, mergedTail;
-        mergedHead = mergedTail = minHeap.poll();
-
-        // If the extracted node has a next node, add it to the heap
-        if (mergedTail.next != null) {
-            minHeap.offer(mergedTail.next);
-        }
-
-        // Step 3: Process the remaining nodes in the heap
-        while (!minHeap.isEmpty()) {
-            // Extract the smallest node from the heap
-            ListNode smallestNode = minHeap.poll();
-
-            // Append the extracted node to the merged singly linked list
-            mergedTail.next = smallestNode;
-            mergedTail = smallestNode;
-
-            // If there are more nodes in the extracted node’s list, add them to the heap
-            if (smallestNode.next != null) {
-                minHeap.offer(smallestNode.next);
-            }
-        }
-
-        // Return the head of the merged singly linked list
-        return mergedHead;
+        return merged.head;
     }
 }
