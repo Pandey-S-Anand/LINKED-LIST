@@ -13,32 +13,44 @@
 //Bruteforce approach
  
 class Solution {
-    private ListNode newHead;
-    private ListNode newTail;
+    //Helper class to maintain head and tail of a newly constructed list.
+    private static class NodePair {
+        private ListNode head;
+        private ListNode tail;
+
+        public void append(ListNode node) {
+            if (head == null) {
+                head = tail = node;
+            } else {
+                tail.next = node;
+                tail = node;
+            }
+        }
+    }
 
     public ListNode removeNodes(ListNode head) {
-        if (head.next == null) {
-            return head;
-        }
-
         ListNode currentNode = head;
+        NodePair filteredList = new NodePair();
 
+        // Traverse the list and append only those nodes that don't have a greater node to the right
         while (currentNode != null) {
             if (!hasGreaterOnRight(currentNode)) {
-                append(currentNode);
+                filteredList.append(currentNode);
             }
-
             currentNode = currentNode.next;
         }
 
-        return newHead;
+        filteredList.tail.next = null;
+
+        return filteredList.head;
     }
 
     private boolean hasGreaterOnRight(ListNode node) {
         ListNode currentNode = node.next;
 
+        // Scan the rest of the list to check for a larger value
         while (currentNode != null) {
-            if (node.val < currentNode.val) {
+            if (currentNode.val > node.val) {
                 return true;
             }
             currentNode = currentNode.next;
@@ -46,43 +58,73 @@ class Solution {
 
         return false;
     }
-
-    private void append(ListNode node) {
-        if (newHead == null) {
-            newHead = newTail = node;
-        } else {
-            newTail.next = node;
-            newTail = node;
-        }
-    }
 }
 
 
-//Better approach (Monotonic decreasing stack)
+//Better approach
 
 class Solution {
-    public ListNode removeNodes(ListNode head) {
-        Deque<ListNode> stack = new ArrayDeque<>();
-        ListNode currentNode = head;
+    private static class NodePair {
+        private ListNode head;
+        private ListNode tail;
 
-        // Traverse the singly linked list and use a stack to filter nodes
-        while (currentNode != null) {
-            // Remove smaller elements from the stack
-            while (!stack.isEmpty() && currentNode.val > stack.peek().val) {
-                stack.pop();
+        public void append(ListNode node) {
+            if (head == null) {
+                head = tail = node;
+            } else {
+                tail.next = node;
+                tail = node;
             }
+        }
+    }
 
-            stack.push(currentNode);
+    public ListNode removeNodes(ListNode head) {
+        NodePair filteredList = new NodePair();
+
+        /**
+         * After reversing the singly linked list, the problem transforms into:
+         * 
+         * "Remove nodes if any node on the left is greater than the current node."
+         * 
+         * Explanation:
+         * 1. The right side of each node in the original singly linked list becomes the
+         * left side in the reversed singly linked list.
+         * 2. Instead of checking for greater values on the right, we now check for
+         * greater values on the left.
+         * 3. We keep track of the maximum value encountered so far (maxSoFar) while
+         * traversing from left to right.
+         * 4. If a node's value is less than maxSoFar, we remove it by skipping the node.
+         * 5. Finally, we reverse the singly linked list again to restore the original order.
+         */
+        ListNode newHead = reverse(head);
+        ListNode currentNode = newHead;
+        int maxSoFar = Integer.MIN_VALUE;
+
+        // Traverse the reversed list and build the filtered result
+        while (currentNode != null) {
+            if (currentNode.val >= maxSoFar) {
+                filteredList.append(currentNode);
+                maxSoFar = currentNode.val;
+            }
             currentNode = currentNode.next;
         }
 
-        // Reconstruct the singly linked list from the stack
+        // Disconnects any leftover links from the original list to avoid unintended references
+        filteredList.tail.next = null;
+
+        // Final reversal to restore original order
+        return reverse(filteredList.head);
+    }
+
+    private ListNode reverse(ListNode head) {
+        ListNode currentNode = head;
         ListNode prevNode = null;
 
-        while (!stack.isEmpty()) {
-            ListNode node = stack.pop();
-            node.next = prevNode;
-            prevNode = node;
+        while (currentNode != null) {
+            ListNode nextNode = currentNode.next;
+            currentNode.next = prevNode;
+            prevNode = currentNode;
+            currentNode = nextNode;
         }
 
         return prevNode;
@@ -93,58 +135,44 @@ class Solution {
 //Optimal approach
 
 class Solution {
-    public ListNode removeNodes(ListNode head) {
-        // Edge case: If the singly linked list has only one node, return it as is
-        if (head.next == null) {
-            return head;
-        }
+    private static class NodePair {
+        private ListNode head;
 
-        /**
-         * After reversing the singly linked list, the problem transforms into:
-         * 
-         * "Remove nodes whose value is lesser than any node on the left."
-         * 
-         * Explanation:
-         * 1. The right side of each node in the original singly linked list becomes the
-         * left side in the reversed singly linked list.
-         * 2. Instead of checking for greater values on the right, we now check for
-         * greater values on the left.
-         * 3. We keep track of the maximum value encountered so far (maxSoFar) while
-         * traversing from left to right (which was right to left before reversal).
-         * 4. If a node's value is less than maxSoFar, we remove it by skipping the node.
-         * 5. Finally, we reverse the singly linked list again to restore the original order.
-         */
-        head = reverse(head); // Tail becomes the head and vice versa
-
-        // Initialize pointers and set maxSoFar to the value of the first node
-        ListNode prevNode = head;
-        ListNode currentNode = head.next;
-        int maxSoFar = head.val;
-
-        // Traverse the reversed singly linked list
-        while (currentNode != null) {
-            int value = currentNode.val;
-
-            // If the current node's value is less than maxSoFar, remove it
-            if (value < maxSoFar) {
-                prevNode.next = currentNode.next; // Skip the current node
+        public void insertAtFront(ListNode node) {
+            if (head == null) {
+                head = node;
             } else {
-                // If the current node's value is greater maxSoFar, update maxSoFar
-                maxSoFar = Math.max(maxSoFar, value);
-                prevNode = currentNode; // Move prevNode to the current node
+                node.next = head;
+                head = node;
             }
+        }
+    }
 
-            // Move currentNode to the next node
-            currentNode = prevNode.next;
+    public ListNode removeNodes(ListNode head) {
+        NodePair filteredList = new NodePair();
+        ListNode newHead = reverse(head); // Step 1: Reverse the list
+        ListNode currentNode = newHead;
+        int maxSoFar = Integer.MIN_VALUE;
+
+        // Step 2 & 3: Traverse reversed list, keep nodes with values >= maxSoFar
+        while (currentNode != null) {
+            ListNode nextNode = currentNode.next;
+            if (currentNode.val >= maxSoFar) {
+                // Step 4: Disconnect current node from original next to avoid dangling links
+                currentNode.next = null;
+                filteredList.insertAtFront(currentNode); // Insert at front to preserve original order
+                maxSoFar = currentNode.val;
+            }
+            currentNode = nextNode;
         }
 
-        //Reverse the singly linked list again to restore the original order
-        return reverse(head);
+        // Step 5: Since nodes are inserted at the front, the resulting list is correctly ordered without needing another reversal.
+        return filteredList.head;
     }
 
     private ListNode reverse(ListNode head) {
-        ListNode prevNode = null;
         ListNode currentNode = head;
+        ListNode prevNode = null;
 
         while (currentNode != null) {
             ListNode nextNode = currentNode.next;
