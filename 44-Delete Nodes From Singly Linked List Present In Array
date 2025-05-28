@@ -10,39 +10,47 @@
  */
 
 class Solution {
-    public ListNode modifiedList(int[] arr, ListNode head) {
-        // Using a HashSet to store values that need to be removed for quick lookup
-        Set<Integer> removalSet = new HashSet<>();
+    // Helper class to manage both head and tail pointers of a newly built list
+    private static class NodePair {
+        private ListNode head;
+        private ListNode tail;
 
-        for (int value : arr) {
-            removalSet.add(value);
-        }
-
-        ListNode prevNode = null; // Tracks the previous node
-        ListNode currentNode = head; // Traverses the singly linked list
-
-        while (currentNode != null) {
-            int nodeValue = currentNode.val;
-
-            // If the current node's value is in the removal set, delete it
-            if (removalSet.contains(nodeValue)) {
-                // If there is a previous node, update its next pointer to skip the current node
-                if (prevNode != null) {
-                    prevNode.next = currentNode.next;
-                }
-
-                // If the current node is the head, move the head to the next node
-                if (currentNode == head) {
-                    head = currentNode.next;
-                }
+        // Append a node to the end of the list maintained by this NodePair
+        private void append(ListNode node) {
+            if (head == null) {
+                // If list is empty, initialize both head and tail to the node
+                head = tail = node;
             } else {
-                prevNode = currentNode; // Update previous only if the current node is retained
+                // Attach new node at the end and move tail pointer forward
+                tail.next = node;
+                tail = node;
             }
+        }
+    }
 
-            currentNode = currentNode.next; // Move to the next node
+    public ListNode modifiedList(int[] arr, ListNode head) {
+        NodePair list = new NodePair(); // This will store the filtered result list
+
+        // Convert array to Set for O(1) lookup time for each element
+        Set<Integer> set = Arrays.stream(arr).boxed().collect(Collectors.toSet());
+
+        ListNode currentNode = head;
+
+        // Traverse original list
+        while (currentNode != null) {
+            // If current node's value is NOT in the set, append it to result list
+            if (!set.contains(currentNode.val)) {
+                list.append(currentNode);
+            }
+            currentNode = currentNode.next; // Move to next node
         }
 
-        return head; // Return the modified singly linked list
+        // Important: If any nodes were added, cut off any leftover links
+        if (list.tail != null) {
+            list.tail.next = null;
+        }
+
+        // Return head of the filtered list, or null if all nodes were removed
+        return list.head;
     }
 }
-
