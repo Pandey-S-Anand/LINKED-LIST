@@ -1,96 +1,49 @@
-//Bruteforce Approach
-
-class Solution {
-    public DLLNode reverseDLL(DLLNode head) {
-        // Edge case : If the doubly linked list is empty or it contains a single node
-        if (head == null || head.next == null) {
-            return head;
-        }
-
-        // Find the tail of the doubly linked list
-        DLLNode tail = getTail(head);
-
-        DLLNode start = head;
-        DLLNode end = tail;
-        /*
-         * - For odd-sized lists: Until `start` equals `end`.
-         * - For even-sized lists: Until `start` and `end` pointers cross each other.
-         */
-        while (start != end && start.prev != end) {
-            swap(start, end); // Swap the data
-            start = start.next; // Swap the data
-            end = end.prev; // Move end backward
-        }
-
-        return head;
-    }
-
-    private DLLNode getTail(DLLNode head) {
-        DLLNode currentNode = head;
-
-        while (currentNode.next != null) {
-            currentNode = currentNode.next;
-        }
-
-        return currentNode;
-    }
-
-    private void swap(DLLNode start, DLLNode end) {
-        int temp = start.data;
-        start.data = end.data;
-        end.data = temp;
-    }
-}
-
-
 //Optimal Approach
 
 class Solution {
     public DLLNode reverseDLL(DLLNode head) {
-        // Edge case : If the doubly linked list is empty or it contains a single node
-        if (head == null || head.next == null) {
-            return head;
-        }
-
+        DLLNode tail = getTail(head); // Get the last node (tail) using fast pointer approach
         DLLNode start = head;
-        DLLNode end = getTail(head); // Find the tail of the doubly linked list
+        DLLNode end = tail;
+
         /*
-         * - For odd-sized lists: Until `start` equals `end`.
-         * - For even-sized lists: Until `start` and `end` pointers cross each other.
+         * Swap the data between corresponding nodes from the front (start)
+         * and back (end) until they meet or cross each other.
+         * 
+         * For odd-sized lists: loop ends when start == end
+         * For even-sized lists: loop ends when start.prev == end
          */
         while (start != end && start.prev != end) {
-            swap(start, end); // Swap the data
-            start = start.next; // Swap the data
-            end = end.prev; // Move end backward
+            // Swap data values
+            swap(start, end);
+            // Move pointers inward
+            start = start.next;
+            end = end.prev;
         }
 
-        return head;
+        return head; // Return the list head
     }
-    
-    private DLLNode getTail(DLLNode head){
-        DLLNode slow = head;
-        DLLNode fast = head;
-        DLLNode fastPrev = null; // Tracks the node just before the fast pointer during traversal
 
+    private DLLNode getTail(DLLNode head) {
+        DLLNode fast = head;
+        DLLNode fastPrev = null;
+
+        /*
+         * Use a fast pointer to traverse 2 nodes at a time and track its previous node.
+         * - If the list has odd length, fast will end at the last node.
+         * - If even, fast becomes null and fastPrev holds the last node.
+         */
         while (fast != null && fast.next != null) {
-            slow = slow.next;
-            fastPrev = fast.next; // Update fastPrev to the next node of fast
+            fastPrev = fast.next;
             fast = fast.next.next;
         }
 
-        DLLNode end;
-
-        if (fast == null) {
-            // If the fast pointer is null, the list size is even. The tail node is pointed to by fastPrev
-            return fastPrev;
-        }
-        // If the fast pointer is not null, the list size is odd. The tail node is pointed to by fast
-        return fast;
+        return (fast != null) ? fast : fastPrev;
     }
-
-    private void swap(DLLNode start, DLLNode end) {
+    
+    private void swap(DLLNode start, DLLNode end){
         int temp = start.data;
         start.data = end.data;
-        end.data = temp;
+        end.data = temp;  
     }
 }
