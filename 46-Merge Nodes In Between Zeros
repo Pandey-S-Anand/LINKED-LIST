@@ -9,71 +9,44 @@
  * }
  */
 
-//Bruteforce approach
-
 class Solution {
-    private ListNode mergedHead;
-    private ListNode mergedTail;
+    private static class NodeBuilder {
+        private ListNode head;
+        private ListNode tail;
+
+        // Appends a new node at the end of the list
+        private void append(ListNode node) {
+            if (head == null) {
+                head = tail = node;
+            } else {
+                tail.next = node;
+                tail = node;
+            }
+        }
+    }
 
     public ListNode mergeNodes(ListNode head) {
+        NodeBuilder list = new NodeBuilder();
+
+        // Start processing from the node after the first 0, as per the problem guarantee that the first and last nodes are always 0
         ListNode currentNode = head.next;
-        int sum = 0;
 
         while (currentNode != null) {
-            int value = currentNode.val;
-            sum += value;
+            int segmentSum = 0;
 
-            if (value == 0) {
-                append(sum);
-                sum = 0;
+            // Sum all values until the next 0 (end of the current segment)
+            while (currentNode.val != 0) {
+                segmentSum += currentNode.val;
+                currentNode = currentNode.next;
             }
 
+            // Create a new node with the segment sum and append it to the result list
+            list.append(new ListNode(segmentSum));
+
+            // Move to the node after 0 to process the next segment
             currentNode = currentNode.next;
         }
 
-        return mergedHead;
-    }
-
-    private void append(int data) {
-        ListNode newNode = new ListNode(data);
-        if (mergedHead == null) {
-            mergedHead = mergedTail = newNode;
-        } else {
-            mergedTail.next = newNode;
-            mergedTail = newNode;
-        }
-    }
-}
-
-
-//Optimal approach
-
-class Solution {
-    public ListNode mergeNodes(ListNode head) {
-        ListNode lastPosition = null; // Last node where a merged value was inserted
-        ListNode insertPosition = head; // Tracks where the next merged value should be inserted
-        ListNode currentNode = head.next; // Start from the second node (next of head)
-        int sum = 0; // Variable to accumulate the sum between zeros
-
-        while (currentNode != null) {
-            int value = currentNode.val;
-            sum += value;
-
-            // When a zero is encountered, insert the sum and move the insertion pointer
-            if (value == 0) {
-                insertPosition.val = sum; // Insert the accumulated sum at insertPosition
-                lastPosition = insertPosition; // Update the lastPosition to the current insertPosition
-                insertPosition = insertPosition.next; // Move insertPosition to the next node
-                sum = 0; // Reset the sum for the next sequence
-            }
-
-            currentNode = currentNode.next;
-        }
-
-        // Set the next of the last position to null to terminate the modified singly
-        // linked list
-        lastPosition.next = null;
-
-        return head;
+        return list.head;
     }
 }
