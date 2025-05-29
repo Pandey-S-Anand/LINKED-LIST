@@ -1,29 +1,33 @@
 class Solution {
     static void linkdelete(Node head, int n, int m) {
-        Node current = head;
-        
-        while (current != null) {
-            // Skip M nodes
-            for (int i = 1; i < m && current != null; i++) {
-                current = current.next;
+        Node currentNode = head;       // Pointer to traverse the list
+        Node lastRetainedNode = null;  // Pointer to keep track of last node before deletion
+
+        while (currentNode != null) {
+
+            // Step 1: Skip 'm' nodes to retain them
+            for (int count = 1; count <= m && currentNode != null; count++) {
+                lastRetainedNode = currentNode;     // Update the last retained node
+                currentNode = currentNode.next;     // Move to next node
             }
-            
-            // If we have reached the end, break
-            if (current == null){
-               return;  
-            } 
-            
-            // Delete next N nodes
-            Node temp = current.next;
-            for (int i = 0; i < n && temp != null; i++) {
-                temp = temp.next;
+
+            // If we've reached the end after skipping m nodes, no further deletions can be done
+            if (currentNode == null) {
+                return;
             }
-            
-            // Link the remaining singly linked list
-            current.next = temp;
-            
-            // Move to the next M-th node
-            current = temp;
+
+            // Step 2: Skip 'n' nodes to delete them (logically by unlinking)
+            Node lastDeletedNode = null;  // Will point to the last node being deleted
+            for (int count = 1; count <= n && currentNode != null; count++) {
+                lastDeletedNode = currentNode;
+                currentNode = currentNode.next;     // Move ahead, logically deleting the node
+            }
+
+            // Step 3: Explicitly disconnect the last deleted node from the list (helps GC)
+            lastDeletedNode.next = null;
+
+            // Step 4: Connect last retained node to the node after deleted block
+            lastRetainedNode.next = currentNode;
         }
     }
 }
