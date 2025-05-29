@@ -1,29 +1,36 @@
 class Solution {
     Node deleteK(Node head, int k) {
-        if (k == 1) { // If k == 1, we remove every node, so return null
+        // Edge case: if k is 1, we need to delete every node, so return null
+        if (k == 1) {
             return null;
         }
 
+        int position = 1; // To keep track of current node's position
         Node currentNode = head;
-        Node prevNode = null;
-        int count = 1; // Start from position 1
+        Node prevNode = null;        
 
+        // Traverse the list
         while (currentNode != null) {
-            /*
-             * % (modulus) gives the remainder when count is divided by k.
-             * If count % k == 0, it means count is exactly divisible by k.
-             * This means count takes values like k, 2k, 3k, 4k,..., which are the multiples of k—
-             * these correspond to every kth node in the singly linked list.
-             */
-            if (count % k == 0) {
-                prevNode.next = currentNode.next; // Remove current node
+            // If the current node is at position k, 2k, 3k... then delete it
+            if (position % k == 0) {
+                // Skip the current node by linking previous node to current's next
+                prevNode.next = currentNode.next;
+
+                // Detach current node (optional but clean)
+                Node nextNode = currentNode.next;
+                currentNode.next = null;
+
+                // Move to the next node
+                currentNode = nextNode;
             } else {
-                prevNode = currentNode; // Move prev forward only if not deleting
+                // Move prevNode and currentNode one step forward
+                prevNode = currentNode;
+                currentNode = currentNode.next;
             }
-            currentNode = currentNode.next; // Move to next node
-            count++;
+
+            position++;
         }
 
-        return head;
+        return head;  // Return the modified list
     }
 }
