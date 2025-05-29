@@ -1,29 +1,51 @@
 class Solution {
-    Node removeDuplicates(Node head) {
-        Node currentNode = head.next;
-        // Traverse the doubly linked list until the end
-        while (currentNode != null) {
-            // Access the previous and next nodes of the current node
-            Node prevNode = currentNode.prev;
-            Node nextNode = currentNode.next;
-             // Check if the current node is a duplicate of the previous node
-            if (currentNode.data == prevNode.data) {
-                // Update the 'next' pointer of the previous node to skip the current node
-                // prevNode == null only happens when the current node is the head node
-                if (prevNode != null) {
-                    prevNode.next = currentNode.next;
-                }
-                
-                // Update the 'prev' pointer of the next node to skip the current node
-                // nextNode == null only happens when the current node is the tail node
-                if (nextNode != null) {
-                    nextNode.prev = prevNode;
-                }
+    // Helper class to build the resulting linked list without duplicates
+    private static class NodeBuilder {
+        private Node head; // Head of the newly built list
+        private Node tail; // Tail to append new unique nodes efficiently
+
+        // Appends a node to the end of the list
+        private void append(Node node) {
+            if (head == null) {
+                // First node being added to the list
+                head = tail = node;
+            } else {
+                // Link the current tail to the new node
+                tail.next = node;
+                node.prev = tail; // Set previous pointer for doubly linked list
+                tail = node; // Update the tail to the new node
             }
-            // Move to the next node in the doubly linked list
+        }
+    }
+
+    // Removes duplicate nodes from a sorted doubly linked list
+    Node removeDuplicates(Node head) {
+        // Edge case: if list contains only one node, return as is
+        if (head.next == null) {
+            return head;
+        }
+
+        NodeBuilder list = new NodeBuilder();
+
+        // Always add the first node (assumed unique initially)
+        list.append(lastUniqueNode);
+
+        // Start checking from the second node
+        Node currentNode = head.next;
+
+        while (currentNode != null) {
+            // If current node contains a different value than the last unique node
+            if (list.tail.data != currentNode.data) {
+                list.append(currentNode); // Append it to result list
+            }
+
+            // Move to the next node in the original list
             currentNode = currentNode.next;
         }
-        // Return the head of the list
-        return head;
+
+        // Ensure the new list ends correctly and doesn’t point to any duplicate node
+        list.tail.next = null;
+
+        return list.head; // Return the head of the deduplicated list
     }
 }
