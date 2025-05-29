@@ -10,74 +10,60 @@
  */
 
  //Bruteforce approach
- 
+
 class Solution {
+
     public int[] nodesBetweenCriticalPoints(ListNode head) {
-        // If there are less than 3 nodes, no critical points are possible
-        if (head.next.next == null) {
+        // Step 1: Get positions of all critical points
+        List<Integer> criticalPointsPosition = getAllCriticalPoints(head);
+
+        // If there are fewer than 2 critical points, return [-1, -1] as required
+        if (criticalPointsPosition.size() < 2) {
             return new int[] { -1, -1 };
         }
 
-        List<Integer> criticalPointPositions = new ArrayList<>();
+        // Step 2: Compute max distance = distance between first and last critical point
+        int maxDistance = criticalPointsPosition.get(criticalPointsPosition.size() - 1) - criticalPointsPosition.get(0);
+
+        // Step 3: Compute minimum distance — this is the smallest distance between any two adjacent critical points
+        int minDistance = Integer.MAX_VALUE;
+        for (int i = 0; i < criticalPointsPosition.size() - 1; i++) {
+            int distance = criticalPointsPosition.get(i + 1) - criticalPointsPosition.get(i);
+            minDistance = Math.min(minDistance, distance);
+        }
+
+        // Return result as [minDistance, maxDistance]
+        return new int[] { minDistance, maxDistance };
+    }
+
+    private List<Integer> getAllCriticalPoints(ListNode head) {
+        List<Integer> criticalPointsPosition = new ArrayList<>();
+
+        // The first and last nodes can never be critical points because they are missing one of the neighbors
+        ListNode currentNode = head.next; // Start from the second node
         ListNode prevNode = head;
-        ListNode currentNode = head.next;
-        int position = 1; // Start tracking positions from the second node
+        int currentPosition = 1; // head is at position 1
 
-        // Traverse the singly linked list to find critical points (local min or local max)
+        // Traverse until the second last node
         while (currentNode.next != null) {
-            int currentValue = currentNode.val;
-            int prevValue = prevNode.val;
-            int nextValue = currentNode.next.val;
-            position++;
+            currentPosition++; // Move to the currentNode's position
 
-            // Check if the current node is a critical point (local min or local max)
-            if (isCriticalPoint(currentValue, prevValue, nextValue)) {
-                criticalPointPositions.add(position);
+            // Check if currentNode is a local maxima or minima
+            if (isCriticalPoint(currentNode.val, prevNode.val, currentNode.next.val)) {
+                criticalPointsPosition.add(currentPosition);
             }
 
+            // Move pointers forward
             prevNode = currentNode;
             currentNode = currentNode.next;
         }
 
-        // Calculate minimum and maximum distances between critical points
-        return calculateMinAndMaxDistance(criticalPointPositions);
+        return criticalPointsPosition;
     }
 
-    /**
-     * Determines if a given node is a critical point.
-     * A node is critical if:
-     * - It is a local maximum (greater than both its neighbors)
-     * - It is a local minimum (smaller than both its neighbors)
-     */
     private boolean isCriticalPoint(int currentValue, int prevValue, int nextValue) {
         return (currentValue > prevValue && currentValue > nextValue) ||
-               (currentValue < prevValue && currentValue < nextValue);
-    }
-
-    /**
-     * Computes the minimum and maximum distance between any two critical points.
-     * - Minimum distance: Smallest gap between consecutive critical points.
-     * - Maximum distance: Difference between the first and last critical point.
-     */
-    private int[] calculateMinAndMaxDistance(List<Integer> criticalPointPositions) {
-        int size = criticalPointPositions.size();
-
-        // If fewer than 2 critical points exist, return [-1, -1]
-        if (size < 2) {
-            return new int[] { -1, -1 };
-        }
-
-        // Since the list of critical points is sorted, max distance is the difference between the first and the last critical point position.
-        int maxDistance = criticalPointPositions.get(size - 1) - criticalPointPositions.get(0);
-
-        // Compute the minimum distance between consecutive critical points
-        int minDistance = Integer.MAX_VALUE;
-        for (int i = 1; i < size; i++) {
-            int distance = criticalPointPositions.get(i) - criticalPointPositions.get(i - 1);
-            minDistance = Math.min(minDistance, distance);
-        }
-
-        return new int[] { minDistance, maxDistance };
+                (currentValue < prevValue && currentValue < nextValue);
     }
 }
 
@@ -86,44 +72,49 @@ class Solution {
 
 class Solution {
     public int[] nodesBetweenCriticalPoints(ListNode head) {
-        if (head.next.next == null) {
-            return new int[] { -1, -1 };
-        }
+        // Initialize pointers to traverse the list and track positions
+        ListNode currentNode = head.next, prevNode = head;
 
-        ListNode prevNode = head;
-        ListNode currentNode = head.next;
-        int firstCriticalPosition = -1, lastCriticalPosition = -1, maxDistance = -1, minDistance = Integer.MAX_VALUE, position = 1;
+        int position = 1; // Position tracker (as we skip the head initially)
+        int firstCriticalPointPosition = -1; // Stores position of the first critical point
+        int lastCriticalPointPosition = -1;  // Stores position of the most recently found critical point
+        int minDistance = Integer.MAX_VALUE; // Tracks the smallest distance between any two critical points
 
+        // Traverse from the second node to the second-last node
         while (currentNode.next != null) {
-            int prevValue = prevNode.val;
-            int currentValue = currentNode.val;
-            int nextValue = currentNode.next.val;
-            position++;
+            position++; // Move to next position
 
-            if (isCriticalPoint(currentValue, prevValue, nextValue)) {
-                if (firstCriticalPosition == -1) {
-                    firstCriticalPosition = position;
+            // Check if current node is a critical point
+            if (isCriticalPoint(currentNode.val, prevNode.val, currentNode.next.val)) {
+                if (firstCriticalPointPosition == -1) {
+                    // First critical point found
+                    firstCriticalPointPosition = position;
+                    lastCriticalPointPosition = position;
                 } else {
-                    int distance = position - lastCriticalPosition;
-                    minDistance = Math.min(minDistance, distance);
+                    // Compute minimum distance between current and previous critical points
+                    minDistance = Math.min(minDistance, position - lastCriticalPointPosition);
+                    lastCriticalPointPosition = position;
                 }
-
-                lastCriticalPosition = position;
-                maxDistance = Math.max(maxDistance, position - firstCriticalPosition);
             }
 
+            // Move both pointers forward
             prevNode = currentNode;
             currentNode = currentNode.next;
         }
 
-        if (minDistance == Integer.MAX_VALUE) { // or maxDistance == -1
+        // If fewer than 2 critical points were found, return [-1, -1]
+        if (lastCriticalPointPosition == firstCriticalPointPosition) {
             return new int[] { -1, -1 };
         }
+
+        // Maximum distance is between the first and last critical points found
+        int maxDistance = lastCriticalPointPosition - firstCriticalPointPosition;
 
         return new int[] { minDistance, maxDistance };
     }
 
-    private boolean isCriticalPoint(int currentValue, int prevValue, int nextValue) {
-        return (currentValue > prevValue && currentValue > nextValue) || (currentValue < prevValue && currentValue < nextValue);
+    // Helper method to determine if a node is a critical point
+    private boolean isCriticalPoint(int currValue, int prevValue, int nextValue) {
+        return (currValue > prevValue && currValue > nextValue) || (currValue < prevValue && currValue < nextValue);
     }
 }
