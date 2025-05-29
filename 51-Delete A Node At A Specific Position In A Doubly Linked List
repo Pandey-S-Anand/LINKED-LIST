@@ -2,26 +2,33 @@ class Solution {
     public Node deleteNode(Node head, int position) {
         Node currentNode = head;
 
-        // Traverse the list to reach the node at the given position (1-based index).
+        // Step 1: Traverse to the node at the given position  We stop at the node to be deleted
         while (position > 1) {
             currentNode = currentNode.next;
             position--;
         }
 
-        // Case 1: If the node to be deleted is the only node in the list.
-        if (currentNode.prev == null && currentNode.next == null) {
-            return null; // Return null as the doubly linked list becomes empty.
-        } else if (currentNode.prev == null) { // Case 2: If the node to be deleted is the head node.
-            head = currentNode.next; // Update the head to the next node.
-            currentNode.next.prev = null; // Remove the backward link from the next node.
-        } else if (currentNode.next == null) { // Case 3: If the node to be deleted is the tail node.
-            currentNode.prev.next = null; // Remove the forward link from the previous node.
-        } else { // Case 4: If the node to be deleted is in the middle of the list.
-            currentNode.prev.next = currentNode.next; // Connect the previous node to the next node.
-            currentNode.next.prev = currentNode.prev; // Connect the next node to the previous node.
+        // Get the previous and next nodes of the node to be deleted
+        Node nextNode = currentNode.next;
+        Node prevNode = currentNode.prev;
+
+        // Case 1: Deleting the head node (position == 1)
+        if (prevNode == null) {
+            // Update the head to next node
+            head = nextNode;
+            
+            // If there's a node after head, update its prev to null (this check is safe even though the list size is guaranteed to be >= 2)
+            if (nextNode != null) {
+                nextNode.prev = null;
+            }
+        }else if (nextNode == null) {
+            // Simply remove the last node by updating the second last node's next to null
+            prevNode.next = null;
+        } else {  // Case 3: Deleting a middle node
+            prevNode.next = nextNode;     // Link previous node to next node
+            nextNode.prev = prevNode;     // Link next node to previous node
         }
 
-        // Return the updated head of the doubly linked list.
         return head;
     }
 }
