@@ -1,31 +1,34 @@
 public class Solution {
-    static Node insert(Node head, int n, int pos, int val) {
-        Node currentNode = head;
-        Node prevNode = null;
-
-        // Traverse the list up to the given position
-        while (pos > 0) {
-            prevNode = currentNode;
-            currentNode = currentNode.next;
-            pos--;
-        }
-
-        /*
-         * After the completion of the loop, prevNode will point to the node just before
-         * the target position (pos - 1), and currentNode will point to the node at
-         * the target position (pos).
-         */
-        Node newNode = new Node(val);
-        // Handle special case when pos is 0 (insert at the beginning)
-        if (prevNode == null) {
+    static Node insert(Node head, int n, int index, int value) {
+        // Case 1: Insert at front
+        if (index == 0) {
+            Node newNode = new Node(value);
             newNode.next = head;
-            head = newNode;
-        } else { 
-            // Insert the new node between prevNode and currentNode
-            newNode.next = prevNode.next;
-            prevNode.next = newNode;
+            return newNode;
         }
+
+        // Find node just before target index
+        Node previousNode = getNodeAt(head, index - 1);
+
+        // Create new node
+        Node newNode = new Node(value);
+
+        // Adjust pointers
+        newNode.next = previousNode.next;
+        previousNode.next = newNode;
 
         return head;
+    }
+
+    //Returns node at a specific index (0-based).
+    private static Node getNodeAt(Node head, int index) {
+        Node current = head;
+
+        while (index != 0) {
+            current = current.next;
+            index--;
+        }
+
+        return current;
     }
 }
