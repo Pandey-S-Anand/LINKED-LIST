@@ -1,22 +1,27 @@
 class Solution {
-    Node insertAtEnd(Node head, int x) {
-        // If the list is empty, the new node becomes the head
+    public Node insertAtEnd(Node head, int x) {
+        // If list is empty, new node becomes the head
         if (head == null) {
-            head = new Node(x); // Create a new node and assign it as head
-        } else {
-            // Start from the head node
-            Node currentNode = head;
-
-            // Traverse the list to find the last node
-            while (currentNode.next != null) {
-                currentNode = currentNode.next;
-            }
-
-            // Once the last node is found, append the new node
-            currentNode.next = new Node(x);
+            return new Node(x);
         }
 
-        // Return the (possibly new) head of the list
+        // Find the last node of the list
+        Node tail = getTail(head);
+
+        // Attach new node at the end
+        tail.next = new Node(x);
+
         return head;
+    }
+
+    private Node getTail(Node head) {
+        Node node = head;
+
+        // Traverse until the last node
+        while (node.next != null) {
+            node = node.next;
+        }
+
+        return node;
     }
 }
