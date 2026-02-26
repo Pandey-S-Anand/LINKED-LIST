@@ -1,17 +1,39 @@
 class Solution {
     public static Node moveToFront(Node head) {
-        Node currentNode = head;
-        Node prevNode = null;
-
-        while (currentNode.next != null) {
-            prevNode = currentNode;
-            currentNode = currentNode.next;
+        // Edge case: single node list
+        if (head.next == null) {
+            return head;
         }
 
-        prevNode.next = null; // Detach the last node by setting prevNode's next to null
-        currentNode.next = head; // Move the last node to the front by setting its next to the head
-        head = currentNode; // Update the head to be the last node
+        // Find second last node
+        Node newTail = getSecondLast(head);
 
-        return head; // Return the new head of the singly linked list
+        // Last node becomes new head
+        Node newHead = newTail.next;
+
+        // Break the link to detach last node
+        newTail.next = null;
+
+        // Attach old head after new head
+        newHead.next = head;
+
+        // Update head reference
+        head = newHead;
+
+        return head;
+    }
+
+    // Returns the second last node of the list.
+    private static Node getSecondLast(Node head) {
+        Node node = head;
+        Node prevNode = null;
+
+        // Traverse until node reaches the last node
+        while (node.next != null) {
+            prevNode = node;
+            node = node.next;
+        }
+
+        return prevNode;
     }
 }
