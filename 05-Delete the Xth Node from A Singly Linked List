@@ -12,28 +12,35 @@ class Node
 
 class Solution {
     Node deleteNode(Node head, int x) {
-        Node currentNode = head;
-        Node prevNode = null;
-
-        // Traverse the list to reach the x-th node : Stop when x becomes 1 (we're at the node to delete)
-        while (x > 1) {
-            prevNode = currentNode;          
-            currentNode = currentNode.next; 
-            x--;
+        // Edge case: delete first node
+        if (x == 1) {
+            return head.next;
         }
 
-        // If deleting the first node (i.e., position x = 1)
-        if (prevNode == null) {
-            return head.next; // Return second node as new head
-        }
+        // Find (x-1)th node
+        Node prevNode = getNodeAt(head, x - 1);
 
-        // Bypass the current node to delete it from the list
-        prevNode.next = currentNode.next;
+        // Node to delete
+        Node temp = prevNode.next;
 
-        // Disconnect the deleted node (optional, helps GC in Java)
-        currentNode.next = null;
+        // Skip the node
+        prevNode.next = temp.next;
 
-        // Return the updated head
+        // Help GC by removing reference
+        temp.next = null;
+
         return head;
+    }
+
+    // Returns node at given 1-based position.
+    private Node getNodeAt(Node head, int pos) {
+        Node node = head;
+
+        while (pos > 1 && node != null) {
+            node = node.next;
+            pos--;
+        }
+
+        return node;
     }
 }
