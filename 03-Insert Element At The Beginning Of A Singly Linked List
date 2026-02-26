@@ -1,15 +1,19 @@
 class Solution {
-        public Node insertAtBegining(Node head, int x) {
-        // Create a new node with the given value x
-        Node newHead = new Node(x);
+    public Node insertAtFront(Node head, int x) {
+        // If list is empty, new node becomes the head
+        if (head == null) {
+            return new Node(x);
+        }
 
-        // Point the next of new node to the current head
-        newHead.next = head;
+        // Create new node
+        Node node = new Node(x);
 
-        // Update head to point to the new node
-        head = newHead;
+        // Link new node to current head
+        node.next = head;
 
-        // Return the new head of the list
+        // Update head reference
+        head = node;
+
         return head;
     }
 }
