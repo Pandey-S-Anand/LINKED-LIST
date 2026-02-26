@@ -1,39 +1,59 @@
-/*
- * Why is the node not the last node?
- * 
- * The given node is guaranteed not to be the last node because the deletion strategy 
- * involves copying the value of the next node into the current node. The final step is 
- * detaching the last node by setting the next pointer of the second-to-last node to null, 
- * effectively removing the last node from the list.
- * 
- * Why are all values distinct?
- * 
- * If the node values were not distinct, there would be ambiguity in identifying which node 
- * has been deleted based solely on the list structure after the operation. Distinct values 
- * ensure that the modified list maintains a clear and unambiguous state after the deletion operation.
- */
-
 /**
  * Definition for singly-linked list.
  * public class ListNode {
- * int val;
- * ListNode next;
- * ListNode(int x) { val = x; }
+ *     int val;
+ *     ListNode next;
+ *     ListNode(int x) { val = x; }
  * }
  */
 class Solution {
+    /**
+     *
+     * Important Constraints from the Problem:
+     * 1) The node to be deleted is NOT the last node.
+     * 2) All node values are distinct.
+     *
+     * Why can't the node be the last node?
+     * --------------------------------------
+     * We are NOT given the head of the list.
+     * The only way to "delete" a node in this problem is by:
+     *   - Continuously copying the value of the next node into the current node
+     *     until we reach the last node,
+     *   - While keeping track of the previous node,
+     *   - And finally unlinking the last node by setting prevNode.next = null.
+     *
+     * If the given node is the last node:
+     *   - node.next would be null.
+     *   - There would be no next value to copy.
+     *   - Hence, deletion would be impossible without access to the head.
+     *
+     *
+     * Why does the problem say values are distinct?
+     * ---------------------------------------------
+     * Having distinct values ensures clarity when verifying the output
+     * and avoids confusion during explanation or debugging.
+     *
+     * Example:
+     * 1 -> 2 -> 3 -> 5 -> 2 -> 6
+     *
+     * Suppose we are asked to delete the second last node with value 2.
+     * Even after deletion, there would still be another node with value 2
+     * (the second node in the list).
+     *
+     * This could lead to ambiguity while verifying whether the correct
+     * node was deleted, since values are not unique.
+     */
     public void deleteNode(ListNode node) {
-        ListNode currentNode = node;
         ListNode prevNode = null;
 
-        while (currentNode.next != null) {
-            // Copy the value of the next node into the current node
-            currentNode.val = currentNode.next.val;
-            // Move prevNode and currentNode one step ahead
-            prevNode = currentNode;
-            currentNode = currentNode.next;
+        // Shift values forward
+        while (node.next != null) {
+            node.val = node.next.val;
+            prevNode = node;
+            node = node.next;
         }
-        // Set the next pointer of prevNode to null, effectively removing the last node
+
+        // Unlink the final node
         prevNode.next = null;
     }
 }
