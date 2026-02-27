@@ -1,27 +1,40 @@
 //Bruteforce Approach
 
 class Solution {
-    public int countNodesinLoop(Node head) {
-        // Create a HashMap to store each node with the timestamp (the step number when the node was first visited)
-        Map<Node, Integer> nodesTimestamp = new HashMap<>();
-        int time = 1; // Variable to track the current time (step number)
+    /**     
+     * Approach (HashMap based detection):
+     * - Traverse the linked list while storing each visited node
+     *   along with the step number at which it was first seen.
+     * - If we encounter a node that already exists in the map,
+     *   it means a cycle is detected.
+     * - The length of the cycle is:
+     *      currentStep - firstSeenStepOfThatNode
+     *
+     * Why this works:
+     * - When we revisit the same node reference,
+     *   we must have completed one full cycle.
+     *
+     * Note:
+     * - If no cycle exists, return 0.
+     */
+    public int lengthOfLoop(Node head) {
+        Map<Node, Integer> visitedStepMap = new HashMap<>();
+        Node node = head;
+        int step = 1;
 
-        Node currentNode = head;
-
-        while (currentNode != null) {
-            // If the current node is already in the map, a loop is detected
-            if (nodesTimestamp.containsKey(currentNode)) {
-                // The loop length is the difference between the current time and the first time the node was seen
-                return time - nodesTimestamp.get(currentNode);
+        while (node != null) {
+            // If node already seen → cycle detected
+            if (visitedStepMap.containsKey(node)) {
+                return step - visitedStepMap.get(node);
             }
 
-            // Add the current node to the map with the current timestamp
-            nodesTimestamp.put(currentNode, time++);
-            // Move to the next node in the list
-            currentNode = currentNode.next;
+            // Store node reference with step number
+            visitedStepMap.put(node, step++);
+
+            node = node.next;
         }
 
-        // If no loop is detected, return 0
+        // No cycle present
         return 0;
     }
 }
@@ -29,107 +42,50 @@ class Solution {
 
 //Optimal Approach
 
-/**
- * Detects if a singly linked list contains a cycle.
- *
- * Approach:
- * - This uses Floyd's Cycle Detection Algorithm (Tortoise and Hare).
- * - Two pointers (`slow` and `fast`) traverse the list:
- *   - `slow` moves one step at a time.
- *   - `fast` moves two steps at a time.
- * - If there is a cycle, the `slow` and `fast` pointers will eventually meet,
- *   meaning the while-loop termination condition (`fast != null && fast.next != null`) will not be met, leading to an infinite loop.
- * - If there is no cycle, `fast` or `fast.next` will reach `null`, and the loop terminates safely without entering an infinite loop.
- *
- * Explanation for pointer meeting in case of a loop:
- * - At the first instant when both pointers enter the loop, the gap between the
- *   fast and slow pointers (measured in the clockwise direction) is at its maximum.
- * - As both pointers continue moving, the fast pointer gradually reduces the gap by 1 step in each subsequent iteration.
- * - This happens because the fast pointer moves 2 steps for every 1 step the slow pointer takes. 
- *   As a result, the fast pointer eventually catches up with the slow pointer.
- *
- * Edge Cases:
- * - If the list is empty (`head == null`), there is no cycle.
- * - If the list has only one node (`head.next == null`), there is no cycle.
- * - For an **odd-sized list** (e.g., `1 -> 2 -> 3`), the loop ends when `fast.next == null`.
- * - For an **even-sized list** (e.g., `1 -> 2 -> 3 -> 4`), the loop ends when `fast == null`.
- *
- * Example of Floyd's Cycle Detection (Tortoise and Hare):
- *
- * Linked list structure with cycle:
- * A -> B -> C -> D -> E
- *           ^         |
- *           |         v
- *           H <- G <- F
- *
- * Node indexing:
- * 0: A
- * 1: B
- * 2: C  <- cycle starts here
- * 3: D
- * 4: E
- * 5: F
- * 6: G
- * 7: H
- *      ↘ back to C (node 2)
- *
- * Step-by-step movement of slow (1 step) and fast (2 steps):
- *
- * Step | slow at | fast at
- * -----|---------|---------
- * 0    | A (0)   | A (0)
- * 1    | B (1)   | C (2)
- * 2    | C (2)   | E (4)
- * 3    | D (3)   | G (6)
- * 4    | E (4)   | C (2)
- * 5    | F (5)   | E (4)
- * 6    | G (6)   | G (6)   <-- slow and fast meet here (inside cycle)
- *
- * - They meet at node G (index 6), confirming a cycle exists.
- * - This meeting point is not necessarily the cycle's start.
- *
- * --------------------------------------------------------
- * How to find the length of the cycle:
- *
- * - After detecting the cycle (i.e., when slow == fast), initialize a counter.
- * - Move one pointer (say `slow`) one step at a time and increment the counter.
- * - Stop when `slow` returns to the same node (i.e., completes one full loop).
- * - The counter now holds the **length of the loop**.
- *
- * Example:
- * - Suppose they meet at node G.
- * - Start from G, move to H, then C, ..., back to G.
- * - Count how many steps it takes to return to G → this is the loop length.
- */
-
 class Solution {
-    public int countNodesinLoop(Node head) {
+    public int lengthOfLoop(Node head) {
         Node slow = head;
         Node fast = head;
 
+        // Step 1: Detect cycle using fast and slow pointers
         while (fast != null && fast.next != null) {
-            slow = slow.next;
-            fast = fast.next.next;
-            // If slow and fast pointers meet, a cycle is detected
+            slow = slow.next;           // move 1 step
+            fast = fast.next.next;      // move 2 steps
+
+            // If they meet → cycle exists
             if (slow == fast) {
-                // Call findLoopLength to calculate the length of the cycle
-                return findLoopLength(fast);
+                return findLoopLength(slow);
             }
         }
 
+        // No cycle
         return 0;
     }
 
-    private int findLoopLength(Node fast) {
-        Node currentNode = fast.next; // Start from the next node (clockwise next) where the cycle was detected (fast.next)
-        int length = 1; // Count for the node where the cycle was detected i.e fast
+    /**
+     * Calculates the length of the loop.
+     *
+     * Logic:
+     * - When slow and fast meet, they meet somewhere inside the cycle.
+     * - From that meeting point, we traverse the cycle
+     *   until we come back to the same node.
+     * - Count how many steps it takes.
+     *
+     * Why this works:
+     * - In a cycle, every node is reachable again.
+     * - Starting from any node inside the loop,
+     *   one full traversal brings us back to the same node.
+     */
+    private int findLoopLength(Node meetingPoint) {
+        Node node = meetingPoint.next; // Start from the next node (clockwise next) where the cycle was detected (fast.next)
+        int length = 1; // Count for the node where the cycle was detected i.e meetingPoint
 
-        // Traverse the loop and count the nodes
-        while (currentNode != fast) {
-            currentNode = currentNode.next;
+        // Traverse until we come back to meetingPoint
+        while (node != meetingPoint) {
+            node = node.next;
             length++;
         }
-        // Return the number of nodes in the loop
+
         return length;
     }
 }
