@@ -1,40 +1,44 @@
-//Bruteforce Approach
+/*
+class Node{
+    int data;
+    Node next;
+    Node(int a){  data = a; next = null; }
+}*/
 
 class Solution {
     public int getCount(Node head) {
-        Node currentNode = head;
-        int size = 0;
-
+       Node node = head;
+       int length = 0;
+       
         // Traverse the entire list and count the number of nodes
-        while (currentNode != null) {
-            currentNode = currentNode.next;
-            size++;
-        }
-
-        return size;
+       while(node != null){
+          node = node. next;
+          length++;
+       }
+       
+       return length;
     }
 }
 
 
-//Optimal Approach
+//Aliter
 
 class Solution {
     public int getCount(Node head) {
-        int size = 0; // Variable to store the size of the singly linked list
+        int length = 0; // Variable to store the length of the linked list
         Node fast = head;
 
         // Traverse the singly linked list using a fast pointer
         while (fast != null && fast.next != null) {
             fast = fast.next.next; // Move the fast pointer two steps at a time
-            size += 2; // Increment size by 2 as we are effectively counting two nodes in each iteration
+            length += 2; // Increment length by 2 as we are effectively counting two nodes in each iteration
         }
 
-        // Check if the fast pointer is pointing to the last node (odd length singly linked list)
-        if (fast != null) {
-            size++; // Increment size by 1 for the last node
+        // Check if the fast pointer is pointing to the last node (odd length list)
+        if (fast != null && fast.next == null) {
+            length++;
         }
 
-        // Return the total size of the singly linked list
-        return size;
+        return length;
     }
 }
