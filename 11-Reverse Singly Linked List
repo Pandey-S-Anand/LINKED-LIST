@@ -12,140 +12,132 @@
  */
 
 class Solution {
+    /**
+     * Idea:
+     * - A stack follows LIFO (Last-In-First-Out).
+     * - If we push all nodes into a stack,
+     *   popping them will naturally give us nodes in reverse order.
+     *
+     * Steps:
+     * 1) Traverse the original list and push each node onto a stack.
+     *    - While pushing, detach node.next = null
+     *      to prevent accidental cycles when rebuilding.
+     *
+     * 2) Pop nodes one by one:
+     *    - First popped node becomes the new head.
+     *    - Each subsequent popped node is linked using prev.next.
+     *
+     * Example:
+     * Input:  1 -> 2 -> 3 -> 4
+     *
+     * Stack (top at left): 4, 3, 2, 1
+     *
+     * Rebuilt List:
+     * 4 -> 3 -> 2 -> 1
+     */
     public ListNode reverseList(ListNode head) {
-        // If the list is empty, return null
-        if (head == null) {
-            return null;
+        /**
+        * Edge Case Handling:
+        *
+        * 1) If the list is empty (head == null):
+        *    - There is nothing to reverse.
+        *    - Simply return null.
+        *
+        * 2) If the list contains only one node (head.next == null):
+        *    - A single-node list is already reversed by definition.
+        *    - No pointer manipulation is required.
+        */
+        if (head == null || head.next == null) {
+            return head;
         }
 
-        // Step 1: Extract node values into an ArrayList
-        List<Integer> nodeValues = convertToArrayList(head);
+        Deque<ListNode> stack = collectNodesInReverseOrder(head);
 
-        // Step 2: Reverse the ArrayList in-place
-        reverseArrayList(nodeValues);
+        ListNode prev = null;
 
-        // Step 3: Write the reversed values back into the linked list
-        int index = 0;
-        ListNode currentNode = head;
+        // Pop nodes to reconstruct reversed list
+        while (!stack.isEmpty()) {
+            ListNode node = stack.pop();
 
-        while (currentNode != null) {
-            currentNode.val = nodeValues.get(index++);
-            currentNode = currentNode.next;
+            if (prev == null) {
+                // First popped node becomes new head
+                head = node;
+            } else {
+                prev.next = node;
+            }
+
+            prev = node;
         }
 
-        return head; // Return the modified list head
-    }
-
-    private List<Integer> convertToArrayList(ListNode head) {
-        List<Integer> nodeValues = new ArrayList<>();
-        ListNode currentNode = head;
-
-        while (currentNode != null) {
-            nodeValues.add(currentNode.val);
-            currentNode = currentNode.next;
-        }
-
-        return nodeValues;
-    }
-
-    private void reverseArrayList(List<Integer> list) {
-        for (int i = 0; i < list.size() / 2; i++) {
-            int temp = list.get(i);
-            list.set(i, list.get(list.size() - 1 - i));
-            list.set(list.size() - 1 - i, temp);
-        }
-    }
-}
-
-
-
-//Better Approach
-
-class Solution {
-    public ListNode reverseList(ListNode head) {
-        // If the list is empty, simply return null
-        if (head == null) {
-            return null;
-        }
-
-        // Step 1: Push all node values onto a stack : This allows us to access them in reverse order
-        Deque<Integer> stack = collectValuesInReverseOrder(head);
-
-        // Step 2: Traverse the list again and replace each node's value with values popped from the stack
-        ListNode currentNode = head;
-        while (currentNode != null) {
-            currentNode.val = stack.pop();
-            currentNode = currentNode.next;
-        }
-
-        // Step 3: Return the modified head 
         return head;
     }
 
-    private Deque<Integer> collectValuesInReverseOrder(ListNode head) {
-        Deque<Integer> stack = new ArrayDeque<>();
-        ListNode currentNode = head;
+    private Deque<ListNode> collectNodesInReverseOrder(ListNode head) {
+        Deque<ListNode> stack = new ArrayDeque<>();
+        ListNode node = head;
 
-        while (currentNode != null) {
-            stack.push(currentNode.val);
-            currentNode = currentNode.next;
+        while (node != null) {
+            stack.push(node);
+
+            // Store next reference before breaking link
+            ListNode next = node.next;
+            node.next = null; //Break old linkage
+            node = next;
         }
 
-        return stack; // Stack now contains values in reverse order for popping
+        return stack;
     }
 }
-
 
 
 //Optimal Approach
 
-/*
-* The core idea is to reverse the direction of the links between nodes.
-* Instead of using any additional data structures, we will:
-* 
-* - Maintain two pointers:
-*     1. currentNode: to traverse the list.
-*     2. prevNode: to reverse the links and keep track of the new list.
-* 
-* - For each node, we:
-*     1. Save the next node (currentNode.next) to avoid losing track of the list.
-*     2. Set currentNode.next to prevNode, effectively reversing the direction of the link.
-*     3. Move prevNode to currentNode, and currentNode to the next node.
-* 
-* - Repeat this process for every node in the list until we reach the end.
-* 
-* - Once the loop completes, prevNode will point to the new head of the reversed list.
-* 
-* This approach modifies the list in-place with no additional space required.
-*/
-
-//Iterative Approach
-
 class Solution {
+    /*
+    * The core idea is to reverse the direction of the links between nodes.
+    * Instead of using any additional data structures, we will:
+    * 
+    * - Maintain two pointers:
+    *     1. node: to traverse the list.
+    *     2. prev: to reverse the links and keep track of the new list.
+    * 
+    * - For each node, we:
+    *     1. Save the next node ('node.next') to avoid losing track of the list.
+    *     2. Set 'node.next' to 'prev', effectively reversing the direction of the link.
+    *     3. Move 'prev' to 'node', and currentNode to the next node.
+    * 
+    * - Repeat this process for every node in the list until we reach the end.
+    * 
+    * - Once the loop completes, 'prev' will point to the new head of the reversed list.
+    * 
+    * This approach modifies the list in-place with no additional space required.
+    */
     public ListNode reverseList(ListNode head) {
-        // If the list is empty, just return null
-        if (head == null) {
-            return null;
+        // Edge case: empty list or single node list
+        if (head == null || head.next == null) {
+            return head;
         }
 
-        ListNode currentNode = head; // Start with the original head
-        ListNode prevNode = null; // At the beginning, there is no previous node
+        ListNode prev = null;   // Will eventually become the new head
+        ListNode node = head;   // Current node used for traversal
 
-        // Traverse through the list and reverse links one by one
-        while (currentNode != null) {
-            // Save the next node before breaking the current link
-            ListNode nextNode = currentNode.next;
+        // Traverse the entire list
+        while (node != null) {
+            // Store next node before breaking the link
+            ListNode next = node.next;
 
-            // Reverse the link: point current node's next to the previous node
-            currentNode.next = prevNode;
+            // Reverse the current node's pointer
+            node.next = prev;
 
-            // Move prevNode and currentNode one step forward for next iteration
-            prevNode = currentNode;
-            currentNode = nextNode;
+            // Move prev forward (prev becomes current node)
+            prev = node;
+
+            // Move traversal pointer forward
+            node = next;
         }
 
-        // After loop ends, prevNode will be the new head of the reversed list
-        return prevNode;
+        // After loop ends, prev points to the new head
+        return prev;
     }
 }
 
@@ -155,19 +147,27 @@ class Solution {
 
 class Solution {
     public ListNode reverseList(ListNode head) {
+        // Edge case: empty list or single node list
+        if (head == null || head.next == null) {
+            return head;
+        }
+
         return reverseList(head, null);
     }
 
-    private ListNode reverseList(ListNode currentNode, ListNode prevNode) {
-        if (currentNode == null) {
-            return prevNode;
+    private ListNode reverseList(ListNode node, ListNode prev) {
+        // Base case: when we reach end of list prev will be the new head
+        if (node == null) {
+            return prev;
         }
 
-        ListNode nextNode = currentNode.next;
-        currentNode.next = prevNode;
-        prevNode = currentNode;
-        currentNode = nextNode;
+        // Save next node before breaking link
+        ListNode next = node.next;
 
-        return reverseList(currentNode, prevNode);
+        // Reverse pointer
+        node.next = prev;
+
+        // Move pointers forward for next recursive call
+        return reverseList(next, node);
     }
 }
