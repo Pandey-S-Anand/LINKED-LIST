@@ -1,23 +1,47 @@
 //Bruteforce Approach
 
 public class Solution {
+    /**    
+     * Approach:
+     * - Traverse the linked list from head.
+     * - Store each visited node reference inside a HashSet.
+     * - Before moving to the next node, check:
+     *     If the current node already exists in the set,
+     *     it means we have revisited a node → cycle detected.
+     *
+     * Why this works:
+     * - In a normal (acyclic) linked list, each node is visited only once.
+     * - In a cyclic list, traversal will eventually revisit
+     *   a previously seen node reference.
+     *
+     * Important:
+     * - We store node references, NOT node values.
+     * - Two nodes may have the same value, but cycle detection
+     *   must be based on memory reference.
+     */
     public boolean hasCycle(ListNode head) {
-        Set<ListNode> seenNodes = new HashSet<>(); // Track seen node references
+        // Edge case: empty list or single node without self-loop
+        if (head == null || head.next == null) {
+            return false;
+        }
 
-        ListNode currentNode = head;
+        Set<ListNode> seenNodes = new HashSet<>(); // Tracks visited node references
+        ListNode node = head;
 
-        while (currentNode != null) {
-            // If the node is already seen, a cycle exists
-            if (seenNodes.contains(currentNode)) {
+        while (node != null) {
+            // If we have already seen this node, cycle exists
+            if (seenNodes.contains(node)) {
                 return true;
             }
 
-            // Otherwise, add the node to the set and move to the next node
-            seenNodes.add(currentNode);
-            currentNode = currentNode.next;
+            // Mark current node as visited
+            seenNodes.add(node);
+
+            // Move to next node
+            node = node.next;
         }
 
-        // No cycle detected
+        // If traversal ends (node becomes null), no cycle exists
         return false;
     }
 }
@@ -29,63 +53,29 @@ public class Solution {
  * Detects if a singly linked list contains a cycle.
  *
  * Approach:
- * - This uses Floyd's Cycle Detection Algorithm (Tortoise and Hare).
- * - Two pointers (`slow` and `fast`) traverse the list:
- *   - `slow` moves one step at a time.
- *   - `fast` moves two steps at a time.
- * - If there is a cycle, the `slow` and `fast` pointers will eventually meet,
- *   meaning the while-loop termination condition (`fast != null && fast.next != null`) will not be met, leading to an infinite loop.
- * - If there is no cycle, `fast` or `fast.next` will reach `null`, and the loop terminates safely without entering an infinite loop.
+ * - Uses Floyd's Cycle Detection Algorithm (Tortoise and Hare).
+ * - Two pointers traverse the list:
+ *     slow → moves one step at a time.
+ *     fast → moves two steps at a time.
  *
- * Explanation for pointer meeting in case of a loop:
- * - At the first instant when both pointers enter the loop, the gap between the
- *   fast and slow pointers (measured in the clockwise direction) is at its maximum.
- * - As both pointers continue moving, the fast pointer gradually reduces the gap by 1 step in each subsequent iteration.
- * - This happens because the fast pointer moves 2 steps for every 1 step the slow pointer takes. 
- *   As a result, the fast pointer eventually catches up with the slow pointer.
+ * - If a cycle exists:
+ *     fast and slow will eventually meet inside the cycle.
  *
- * Edge Cases:
- * - If the list is empty (`head == null`), there is no cycle.
- * - If the list has only one node (`head.next == null`), there is no cycle.
- * - For an **odd-sized list** (e.g., `1 -> 2 -> 3`), the loop ends when `fast.next == null`.
- * - For an **even-sized list** (e.g., `1 -> 2 -> 3 -> 4`), the loop ends when `fast == null`.
+ * - If no cycle exists:
+ *     fast or fast.next will become null,
+ *     and the loop terminates safely.
  *
- * Example of Floyd's Cycle Detection (Tortoise and Hare):
+ * Important:
+ * - The meeting point of slow and fast is NOT necessarily
+ *   the starting node of the cycle.
+ * - It only confirms that a cycle exists.
  *
- * Linked list structure with cycle:
- * A -> B -> C -> D -> E
- *           ^         |
- *           |         v
- *           H <- G <- F
- *
- * Node indexing:
- * 0: A
- * 1: B
- * 2: C  <- cycle starts here
- * 3: D
- * 4: E
- * 5: F
- * 6: G
- * 7: H
- *      ↘ back to C (node 2) (loop start)
- *
- * Step-by-step movement of slow (1 step) and fast (2 steps):
- *
- * Step | slow at | fast at
- * -----|---------|---------
- * 0    | A (0)   | A (0)
- * 1    | B (1)   | C (2)
- * 2    | C (2)   | E (4)
- * 3    | D (3)   | G (6)
- * 4    | E (4)   | C (2)
- * 5    | F (5)   | E (4)
- * 6    | G (6)   | G (6)   <-- slow and fast meet here (inside cycle)
- *
- * - They meet at node G (index 6), confirming a cycle exists.
- * - This meeting point is not necessarily the cycle's start.
+ * Why do they meet?
+ * - Inside a cycle, the fast pointer gains one extra step
+ *   over the slow pointer in every iteration.
+ * - This gradually reduces the gap between them.
+ * - Eventually, fast catches up to slow.
  */
-
-
 public class Solution {
     public boolean hasCycle(ListNode head) {
         ListNode slow = head;
