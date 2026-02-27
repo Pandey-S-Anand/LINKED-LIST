@@ -1,98 +1,49 @@
-//Brutefroce Approach
-
 class Solution {
+    /**   
+     * Definition of Middle:
+     * - For odd length → exact middle node.
+     * - For even length → second middle node
+     *
+     * Example:
+     * 1 -> 3 -> 4 -> 7 -> 1 -> 2 -> 6
+     * Middle = 7 → delete it
+     *
+     * 1 -> 2 -> 3 -> 4
+     * Middle = 3 (second middle) → delete it
+     *
+     */
     public ListNode deleteMiddle(ListNode head) {
-        /*
-         * Edge case: If the singly linked list contains only one node, it is the middle node itself.
-         * Therefore, deleting it will result in an empty list, so return null.
-         */
+        // Edge case: single node list
         if (head.next == null) {
             return null;
         }
 
-        // Step 1: Calculate the index of the middle node
-        int middleIndex = getSize(head) / 2;
+        // Get node just before middle
+        ListNode prev = getPrevToMiddle(head);
 
-        ListNode prevNode = null; // Keeps track of the node before the current node
-        ListNode currentNode = head;
+        // Middle node to delete
+        ListNode middle = prev.next;
 
-        // Step 2: Traverse the singly linked list to the middle node
-        while (middleIndex > 0) {
-            prevNode = currentNode;
-            currentNode = currentNode.next;
-            middleIndex--;
-        }
+        // Bypass the middle node
+        prev.next = middle.next;
 
-        // Step 3: Remove the middle node by updating the 'next' pointer of the previous node
-        prevNode.next = currentNode.next;
+        // Break link for clarity (optional, helps GC)
+        middle.next = null;
 
         return head;
     }
 
-    private int getSize(ListNode head) {
-        int size = 0;
+    private ListNode getPrevToMiddle(ListNode head) {
         ListNode slow = head;
         ListNode fast = head;
+        ListNode slowPrev = null;
 
         while (fast != null && fast.next != null) {
+            slowPrev = slow;
             slow = slow.next;
             fast = fast.next.next;
-            size += 2; // Increase size count by 2 for each step
-        }
-        
-        // If the fast pointer is not null, the singly linked list has an odd number of nodes. Increment the size by 1 to account for the last node.
-        if (fast != null) {
-            size++;
         }
 
-        return size;
-    }
-}
-
-
-//Optimal Approach
-
-/*
- * - For an **odd-sized list** (e.g., `1 -> 2 -> 3`), the loop ends when
- *   `fast.next == null`, ensuring that `slow` is at the exact middle node (`2`).
- * - For an **even-sized list** (e.g., `1 -> 2 -> 3 -> 4`), the loop ends when`currentFast == null`,
- *   ensuring that `slow` points to the second middle node (`3`).
- * - **As per the problem's requirement**, for even-sized lists, there are two middle nodes,
- *.  and we are expected to treat the second middle node as the middle.
- * - The condition `fast != null` ensures proper handling for even-sized lists,
- *.   while `fast.next != null` handles odd-sized lists.
- */
-
-class Solution {
-    public ListNode deleteMiddle(ListNode head) {
-        // Edge case: Only one node in the list
-        if (head.next == null) {
-            return null;
-        }
-
-        // Find both the middle node and its previous node
-        ListNode[] middleInfo = findMiddleAndPrevious(head);
-        ListNode previous = middleInfo[0];
-        ListNode middle = middleInfo[1];
-
-        // Remove the middle node by bypassing it in the list
-        previous.next = middle.next;
-
-        return head;
-    }
-
-    private ListNode[] findMiddleAndPrevious(ListNode head) {
-        ListNode previous = null;
-        ListNode slow = head;
-        ListNode fast = head;
-
-        // Move fast by 2 and slow by 1
-        while (fast != null && fast.next != null) {
-            previous = slow;      // Track the node before slow
-            slow = slow.next;     // Move slow one step
-            fast = fast.next.next; // Move fast two steps
-        }
-
-        return new ListNode[] { previous, slow };
+        return slowPrev;
     }
 }
