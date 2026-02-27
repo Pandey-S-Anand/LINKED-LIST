@@ -1,41 +1,28 @@
 class Solution {
     public Node removeDuplicates(Node head) {
-        // If the list has only one node or is empty, return it as is
-        if (head == null || head.next == null) {
-            return head;
+        if (head.next == null) {
+            return head;   // Single node → no duplicates possible
         }
 
-        // Set to store unique values we have already seen
+        Node node = head;
+        Node prev = null;
+
         Set<Integer> seenValues = new HashSet<>();
 
-        // Initialize two pointers:
-        Node currentNode = head;  // currentNode - to traverse the list
-        Node prevNode = null;  // prevNode - to help reconnect the list when a duplicate is found
-
-        // Traverse the linked list
-        while (currentNode != null) {
-            int nodeValue = currentNode.data;
-
-            if (seenValues.contains(nodeValue)) {
-                // Duplicate detected: skip this node : Connect previous node to currentNode's next
-                prevNode.next = currentNode.next;
-
-                // Optional: help GC by disconnecting currentNode
-                currentNode.next = null;
-
-                // Move to the next node (prevNode doesn't change here)
-                currentNode = prevNode.next;
+        while (node != null) {
+            // If value already seen → remove current node
+            if (seenValues.contains(node.data)) {
+                prev.next = node.next;  // Bypass duplicate
+                node.next = null;       // Break link (optional cleanup)
+                node = prev.next;       // Move to next node
             } else {
-                // First time this value is seen
-                seenValues.add(nodeValue);
-
-                // Move both pointers ahead
-                prevNode = currentNode;
-                currentNode = currentNode.next;
+                // First occurrence of value
+                seenValues.add(node.data);
+                prev = node;
+                node = node.next;
             }
         }
 
-        // Return the head 
         return head;
     }
 }
