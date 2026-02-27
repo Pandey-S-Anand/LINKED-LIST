@@ -9,38 +9,68 @@
  * }
  */
 class Solution {
-    public ListNode middleNode(ListNode head) {
-        // Step 1: Calculate the total number of nodes in the list
-        int middleIndex = getSize(head) / 2;
 
-        // Step 2: Traverse to the middle node
-        ListNode currentNode = head;
-        while (middleIndex > 0) {
-            currentNode = currentNode.next;
-            middleIndex--;
+    /**
+     * Returns the middle node of a singly linked list.
+     *
+     * 1) First, calculate the total length of the list.
+     * 2) Compute middle index as length / 2.
+     *    - For odd length: returns the exact middle.
+     *    - For even length: returns the second middle (as per problem requirement).
+     * 3) Traverse again up to middle index and return that node.
+     *
+     * Example:
+     * 1 -> 2 -> 3 -> 4 -> 5
+     * length = 5 → middleIdx = 5/2 = 2 → return node at index 2 (0-based) → 3
+     *
+     * 1 -> 2 -> 3 -> 4 -> 5 -> 6
+     * length = 6 → middleIdx = 6/2 = 3 → return node at index 3 → 4
+     *
+     */
+    public ListNode middleNode(ListNode head) {
+        // Computes the length of the linked list.
+        int length = getLength(head);
+
+        // For even length, this automatically gives second middle
+        int middleIdx = length / 2;
+
+        ListNode node = head;
+
+        // Move middleIdx steps forward
+        while (middleIdx != 0) {
+            node = node.next;
+            middleIdx--;
         }
 
-        // Step 3: Return the middle node
-        return currentNode;
+        return node;
     }
 
-    private int getSize(ListNode head) {
-        ListNode currentNode = head;
-        int size = 0;
+    private int getLength(ListNode head) {
+        int length = 0;
+        ListNode node = head;
 
-        while (currentNode != null) {
-            currentNode = currentNode.next;
-            size++;
+        while (node != null) {
+            length++;
+            node = node.next;
         }
 
-        return size;
+        return length;
     }
 }
 
 
-
 //Optimal Approach
 
+/**
+ * Definition for singly-linked list.
+ * public class ListNode {
+ *     int val;
+ *     ListNode next;
+ *     ListNode() {}
+ *     ListNode(int val) { this.val = val; }
+ *     ListNode(int val, ListNode next) { this.val = val; this.next = next; }
+ * }
+ */
 class Solution {
     /**
      * The logic of the slow and fast pointer approach is based on the following analogy:
@@ -77,10 +107,10 @@ class Solution {
 
         // Fast pointer reaches the end, and slow pointer reaches the middle
         while (fast != null && fast.next != null) {
-            fast = fast.next.next;
             slow = slow.next;
+            fast = fast.next.next;
         }
-
-        return slow; // Slow pointer points to the middle node
+        // Slow pointer points to the middle node
+        return slow;
     }
 }
