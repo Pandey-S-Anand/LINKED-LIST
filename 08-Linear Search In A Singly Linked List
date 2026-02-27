@@ -1,17 +1,16 @@
 class Solution {
-    static boolean searchKey(int n, Node head, int key) {
+    public boolean searchKey(Node head, int key) {
         // Initialize a pointer to traverse the list starting from the head
-        Node currentNode = head;
+        Node node = head;
 
         // Traverse the list until the end
-        while (currentNode != null) {
+        while (node != null) {
             // Check if the current node's data matches the key
-            if (currentNode.data == key) {
+            if (node.data == key) {
                 return true; // Key found
             }
-
             // Move to the next node in the list
-            currentNode = currentNode.next;
+            node = node.next;
         }
 
         // Key was not found in the list
