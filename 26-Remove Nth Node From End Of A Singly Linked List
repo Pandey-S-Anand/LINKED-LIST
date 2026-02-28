@@ -1,83 +1,134 @@
-//Bruteforce approach
+//Intuitive Approach
 
 class Solution {
+    /**
+     * Approach :
+     *
+     * 1) First pass:
+     *      - Compute the total length of the linked list.
+     *
+     * 2) Convert "Nth from end" into "index from start":
+     *      target index from start (0-based) = length - n
+     *
+     * 3) Special Case:
+     *      - If targetIdx == 0, the node to remove is the head.
+     *      - Return head.next.
+     *
+     * 4) Otherwise:
+     *      - Find the node just before the target node.
+     *      - Re-link pointers to remove the target node.
+     */
     public ListNode removeNthFromEnd(ListNode head, int n) {
-        // Step 1: Find the total number of nodes in the linked list
-        int size = getSize(head);
+        //Compute length of list
+        int length = getLength(head);
 
-        // Step 2: Calculate the index (from the start) of the node to be removed
-        int targetIndex = size - n;
+        // Determine index of node to remove (0-based)
+        int targetIdx = length - n;
 
-        // Edge case: If the head node is to be removed
-        if (targetIndex == 0) {
-            return head.next; // Return the next node as the new head
+        // If removing the head node
+        if (targetIdx == 0) {
+            return head.next;
         }
 
-        // Step 3: Traverse to the target node (the one to be deleted)
-        ListNode currentNode = head;
-        ListNode prevNode = null;
-        while (targetIndex > 0) {
-            prevNode = currentNode;
-            currentNode = currentNode.next;
-            targetIndex--;
-        }
+        // Find node before target
+        ListNode node = getNodeAtIndex(head, targetIdx - 1);
 
-        // Step 4: Remove the target node by skipping it
-        prevNode.next = prevNode.next.next;
-        currentNode.next = null; // Optional: disconnect for garbage collection
+        // Remove target node
+        ListNode target = node.next;
+        node.next = target.next;
+        target.next = null; // Help GC (optional cleanup)
 
-        // Step 5: Return the head of the list
         return head;
     }
 
-    private int getSize(ListNode head) {
-        ListNode slow = head;
-        ListNode fast = head;
-        int size = 0;
+    private int getLength(ListNode head) {
+        int length = 0;
+        ListNode node = head;
 
-        while (fast != null && fast.next != null) {
-            slow = slow.next;
-            fast = fast.next.next;
-            size += 2;
+        while (node != null) {
+            length++;
+            node = node.next;
         }
 
-        if (fast != null) {
-            size++;
+        return length;
+    }
+
+    private ListNode getNodeAtIndex(ListNode head, int index) {
+        ListNode node = head;
+
+        while (index > 0) {
+            node = node.next;
+            index--;
         }
 
-        return size;
+        return node;
     }
 }
 
 
 //Optimal approach
 
-/*
- * The algorithm uses the two-pointer technique to efficiently remove the N-th node from the end of the list.
- * 
- * 1. The fast pointer is advanced by `n` steps ahead of the slow pointer. This creates a gap of `n` nodes between them.
- *    - By the time the fast pointer reaches the last node (i.e., `fast.next == null`), the slow pointer will be 
- *      positioned just before the node that needs to be deleted.
- * 
- * 2. After advancing the fast pointer, both pointers (fast and slow) are moved simultaneously, one step at a time, 
- *    until the fast pointer reaches the last node. This ensures that when the fast pointer reaches the last node, 
- *    the slow pointer is at the node just before the target node to be deleted.
- * 
- * 3. If the fast pointer becomes `null` after moving `n` steps, it means the node to be deleted is the head of the list.
- *    - In this case, we return `head.next`, effectively removing the head node.
+/**
+ * Remove the N-th node from the end of the list.
+ *
+ * Understanding the Logic (No Magic — Just Distance Math)
+ * --------------------------------------------------------
+ *
+ * Suppose total length of the list = L.
+ *
+ * The N-th node from the end corresponds to:
+ *
+ *      Target index from start (0-based) = L - n
+ *
+ * To remove that node, we need to reach:
+ *
+ *      (L - n - 1)
+ *
+ * which is the index of the node just before the target.
+ *
+ *
+ * What the Fast Pointer Does ?
+ * --------------------------------------------------------
+ * We first move the fast pointer `n` steps ahead of the slow pointer.
+ *
+ * After this:
+ *
+ *      distance(fast, slow) = n
+ *
+ * This gap remains constant because both pointers
+ * move one step at a time afterward.
+ *
+ *
+ * Key Observation
+ * --------------------------------------------------------
+ * When the fast pointer reaches the last node:
+ *
+ *      fast is at index (L - 1)
+ *
+ * Since the gap between fast and slow is always `n`,
+ *
+ *      slow must be at index (L - 1 - n)
+ *
+ * Which simplifies to:
+ *
+ *      (L - n - 1)
+ *
+ * That is exactly the node just before the target node.
+ *
+ *
+ * Conclusion:
+ * --------------------------------------------------------
+ * Advancing fast by `n` steps creates a fixed window of size `n`.
+ * When fast reaches the end, slow automatically lands
+ * at the correct position to remove the target node.
+ *
  */
-
 class Solution {
     public ListNode removeNthFromEnd(ListNode head, int n) {
-        // Special case: If the singly linked list is empty, return null
-        if (head == null) {
-            return null;
-        }
-        
         // Initialize two pointers, fast and slow, both starting from the head
         ListNode fast = head;
         ListNode slow = head;
-        
+
         // Move the fast pointer n steps ahead
         for (int i = 1; i <= n; i++) {
             fast = fast.next;
@@ -87,16 +138,18 @@ class Solution {
         if (fast == null) {
             return head.next; // Remove the first node (head)
         }
-        
+
         // Move both pointers until fast reaches the end of the singly linked list
         while (fast.next != null) {
             fast = fast.next;
             slow = slow.next;
         }
-        
+
         // Remove the nth node from the end
-        slow.next = slow.next.next;
-        
+        ListNode target = slow.next;
+        slow.next = target.next;
+        target.next = null;
+
         return head; // Return the modified singly linked list
     }
 }
