@@ -1,0 +1,63 @@
+class Solution {
+    /**
+     * Determines whether a singly linked list is sorted.
+     *
+     * Definition of Sorted:
+     * - The list can be either:
+     *     1) Non-decreasing  (ascending order with duplicates allowed)
+     *     2) Non-increasing  (descending order with duplicates allowed)
+     *
+     * Special Case:
+     * - If all elements in the list are equal (e.g., 3 -> 3 -> 3),
+     *   then the list is considered both non-decreasing and non-increasing.
+     * - In such a case, both flags (isAscendingSorted and isDescendingSorted)
+     *   will remain true throughout traversal.
+     *
+     * Approach:
+     * - Maintain two flags:
+     *     isAscendingSorted  → assumes list is non-decreasing
+     *     isDescendingSorted → assumes list is non-increasing
+     *
+     * - Traverse the list pairwise (prev, node):
+     *     - If prev.data < node.data → list cannot be descending.
+     *     - If prev.data > node.data → list cannot be ascending.
+     *
+     * - If both flags become false at any point,
+     *   the list is neither ascending nor descending → return false.
+     *
+     * - If traversal completes without both flags turning false,
+     *   the list is sorted in at least one valid order.
+     */
+    public boolean isSorted(Node head) {
+        // Single node list is always sorted
+        if (head.next == null) {
+            return true;
+        }
+
+        boolean isAscendingSorted = true;
+        boolean isDescendingSorted = true;
+
+        Node prev = head;
+        Node node = head.next;
+
+        while (node != null) {
+            // If strictly increasing at this step, it cannot be descending
+            if (prev.data < node.data) {
+                isDescendingSorted = false;
+            } else if (prev.data > node.data) { // If strictly decreasing at this step, it cannot be ascending
+                isAscendingSorted = false;
+            }
+
+            // If both possibilities are invalid → not sorted
+            if (!isAscendingSorted && !isDescendingSorted) {
+                return false;
+            }
+
+            prev = node;
+            node = node.next;
+        }
+
+        // If at least one condition holds, list is sorted
+        return true;
+    }
+}
