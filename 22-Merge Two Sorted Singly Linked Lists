@@ -9,124 +9,120 @@
  * }
  */
 
-//Method 1 (Using extra space)
+//Verbose implementation
 
 class Solution {
-    // Pointer to the head of the merged list
-    private ListNode mergedHead = null;
-    // Pointer to the tail of the merged list for efficient appends
-    private ListNode mergedTail = null;
-
     public ListNode mergeTwoLists(ListNode head1, ListNode head2) {
-        // Initialize pointers to traverse both input lists
-        ListNode currentNode1 = head1;
-        ListNode currentNode2 = head2;
+        ListNode mergedHead = null; // Head of merged list
+        ListNode mergedTail = null; // Tail pointer for efficient append
 
-        // Traverse both lists until one is exhausted
-        while (currentNode1 != null && currentNode2 != null) {
-            // Compare current values from both lists
-            if (currentNode1.val <= currentNode2.val) {
-                // Append the smaller (or equal) value
-                append(currentNode1.val);
-                // Move pointer in list1 forward
-                currentNode1 = currentNode1.next;
+        ListNode node1 = head1; // Traverses first list
+        ListNode node2 = head2; // Traverses second list
+
+        // Merge while both lists have nodes
+        while (node1 != null && node2 != null) {
+            if (node1.val <= node2.val) {
+                // Save next reference before detaching
+                ListNode next = node1.next;
+
+                // First insertion case
+                if (mergedHead == null) {
+                    mergedHead = mergedTail = node1;
+                } else {
+                    // Append to merged list
+                    mergedTail.next = node1;
+                    mergedTail = node1;
+                }
+
+                node1.next = null; // Detach from original list
+                node1 = next; // Move forward in list1
             } else {
-                append(currentNode2.val);
-                // Move pointer in list2 forward
-                currentNode2 = currentNode2.next;
+                ListNode next = node2.next;
+
+                if (mergedHead == null) {
+                    mergedHead = mergedTail = node2;
+                } else {
+                    mergedTail.next = node2;
+                    mergedTail = node2;
+                }
+
+                node2.next = null;
+                node2 = next;
             }
         }
 
-        // If any nodes remain in list1, append them all
-        while (currentNode1 != null) {
-            append(currentNode1.val);
-            currentNode1 = currentNode1.next;
+        // Append remaining nodes from list1 (if any)
+        if (node1 != null) {
+            if (mergedHead == null) {
+                mergedHead = mergedTail = node1;
+            } else {
+                mergedTail.next = node1;
+            }
         }
 
-        // If any nodes remain in list2, append them all
-        while (currentNode2 != null) {
-            append(currentNode2.val);
-            currentNode2 = currentNode2.next;
+        // Append remaining nodes from list2 (if any)
+        if (node2 != null) {
+            if (mergedHead == null) {
+                mergedHead = mergedTail = node2;
+            } else {
+                mergedTail.next = node2;
+            }
         }
 
-        // Return the head of the newly merged list
         return mergedHead;
-    }
-
-    private void append(int data) {
-        // Create a new node for the merged list
-        ListNode newNode = new ListNode(data);
-
-        if (mergedHead == null) {
-            // First node in the merged list
-            mergedHead = newNode;
-            mergedTail = newNode;
-        } else {
-            // Link the new node to the end and update the tail
-            mergedTail.next = newNode;
-            mergedTail = newNode;
-        }
     }
 }
 
 
-//Method 2 (Without extra space)
+//Optimal implementation
 
 class Solution {
-    // Helper class to manage head and tail references for odd/even lists
-    private static class NodePair {
-        private ListNode head;
-        private ListNode tail;
-
-        NodePair() {
-            head = tail = null;
-        }
-
-        // Appends a node to the current list (either odd or even)
-        private void append(ListNode node) {
-            if (head == null) {
-                // First node being added to the list
-                head = tail = node;
-            } else {
-                // Add to the end and update tail
-                tail.next = node;
-                tail = node;
-            }
-        }
-    }
-
     public ListNode mergeTwoLists(ListNode head1, ListNode head2) {
-        // Create  NodePair container for merged list
-        NodePair merged = new NodePair();
-        // Initialize pointers to traverse the input lists
-        ListNode currentNode1 = head1;
-        ListNode currentNode2 = head2;
 
-        // Traverse both lists while neither is exhausted
-        while (currentNode1 != null && currentNode2 != null) {
-            // Compare current node values of both lists
-            if (currentNode1.val <= currentNode2.val) {
-                // Append the node from list1 to the merged list
-                merged.append(currentNode1);
-                currentNode1 = currentNode1.next;
+        // Dummy node to avoid handling special case for first insertion
+        ListNode mergedHead = new ListNode(-1);
+
+        // Tail pointer to build merged list
+        ListNode mergedTail = mergedHead;
+
+        // Pointers to traverse both input lists
+        ListNode node1 = head1;
+        ListNode node2 = head2;
+
+        // Traverse both lists until one becomes null
+        while (node1 != null && node2 != null) {
+            if (node1.val <= node2.val) {
+                // Save next reference before detaching
+                ListNode next = node1.next;
+                // Detach node1 from its original list (optional safety)
+                node1.next = null;
+                // Attach node1 to merged list
+                mergedTail.next = node1;
+                // Move node1 forward
+                node1 = next;
+
             } else {
-                // Append the node from list2 to the merged list
-                merged.append(currentNode2);
-                currentNode2 = currentNode2.next;
+                ListNode next = node2.next;
+                node2.next = null;
+                mergedTail.next = node2;
+                node2 = next;
             }
+
+            // Move mergedTail forward after attachment
+            mergedTail = mergedTail.next;
         }
 
-        // Append remaining nodes from list1, if any
-        if (currentNode1 != null) {
-            merged.append(currentNode1);
+        // Attach remaining nodes from list1 (if any)
+        if (node1 != null) {
+            mergedTail.next = node1;
         }
 
-        // Append remaining nodes from list2, if any
-        if (currentNode2 != null) {
-            merged.append(currentNode2);
+        // Attach remaining nodes from list2 (if any)
+        if (node2 != null) {
+            mergedTail.next = node2;
         }
 
-        // Return the head of the merged linked list
-        return merged.head;
+        // Skip dummy node and return actual head
+        return mergedHead.next;
     }
 }
