@@ -10,61 +10,39 @@
  * ListNode(int val, ListNode next) { this.val = val; this.next = next; }
  * }
  */
+
 class Solution {
     public boolean isPalindrome(ListNode head) {
-        List<Integer> nodeData = new ArrayList<>();
+        // Collect all node values into an ArrayList.
+        List<Integer> nodeData = getNodeData(head);
 
-        ListNode currentNode = head;
+        int low = 0;
+        int high = nodeData.size() - 1;
 
-        while (currentNode != null) {
-            nodeData.add(currentNode.val);
-            currentNode = currentNode.next;
-        }
-
-        return isPalindrome(nodeData);
-    }
-
-    private boolean isPalindrome(List<Integer> arr) {
-        int start = 0, end = arr.size() - 1;
-
-        while (start < end) {
-            if (arr.get(start) != arr.get(end)) {
+        // Compare from both ends
+        while (low < high) {
+            if (!nodeData.get(low).equals(nodeData.get(high))) {
                 return false;
             }
 
-            start++;
-            end--;
+            low++;
+            high--;
         }
 
         return true;
     }
-}
 
+    private List<Integer> getNodeData(ListNode head) {
+        List<Integer> nodeData = new ArrayList<>();
 
-//Improved Approach
+        ListNode node = head;
 
-class Solution {
-    public boolean isPalindrome(ListNode head) {
-        // Stack to store node values
-        Deque<Integer> stack = new ArrayDeque<>();
-
-        ListNode currentNode = head;
-        // Traverse the linked list and push all node values onto the stack
-        while (currentNode != null) {
-            stack.push(currentNode.val);
-            currentNode = currentNode.next;
+        while (node != null) {
+            nodeData.add(node.val);
+            node = node.next;
         }
 
-        currentNode = head;
-        // Traverse the linked list again and compare node values with stack elements
-        while (currentNode != null) {
-            if (currentNode.val != stack.pop()) { // Compare with the top of the stack
-                return false; // If values mismatch, it's not a palindrome
-            }
-            currentNode = currentNode.next; // Move to the next node
-        }
-
-        return true; // All values matched, it's a palindrome
+        return nodeData;
     }
 }
 
@@ -73,65 +51,105 @@ class Solution {
 
 class Solution {
     public boolean isPalindrome(ListNode head) {
-        // Step 1: Find the middle node of the linked list using Floyd's Tortoise and Hare algorithm
-        ListNode middleNode = findMiddleNode(head);
-
-        /*
-         * Example 1: Even number of nodes
-         *   Input: 1 -> 2 -> 2 -> 1
-         *   Middle node points to the second '2'
-         *   First half before middle: 1 -> 2
-         *   Second half from middle (after reversing): 1 -> 2
-         * 
-         * Example 2: Odd number of nodes
-         *   Input: 1 -> 2 -> 3 -> 2 -> 1
-         *   Middle node points to '3'
-         *   First half before middle: 1 -> 2 (last node of first half (i.e 2) points to the last node of the reversed half (i.e 3))
-         *   Second half from middle (after reversing): 1 -> 2 -> 3 
-         *   While comparing, we skip the exact middle node.
-         */
-
-        // Step 2: Reverse the second half of the list starting from middle node
-        ListNode currentNode1 = head;
-        ListNode currentNode2 = reverse(middleNode);
-
-        // Step 3: Compare values from the beginning and from the reversed second half
-        while (currentNode2 != null) {
-            if (currentNode1.val != currentNode2.val) {
-                return false; // Mismatch found, not a palindrome
-            }
-
-            currentNode1 = currentNode1.next;
-            currentNode2 = currentNode2.next;
+        // A single node is always a palindrome
+        if (head.next == null) {
+            return true;
         }
 
-        // All values matched => it is a palindrome
+        //Find the tail of the first half
+        ListNode firstHalfTail = getFirstHalfTail(head);
+
+        //Split the list into two halves
+        ListNode middle = firstHalfTail.next;
+        firstHalfTail.next = null;
+
+        //Reverse the second half
+        ListNode tail = reverse(middle);
+
+        ListNode node1 = head; // Traverses first half
+        ListNode node2 = tail; // Traverses reversed second half
+
+        /**
+         * Why do we check only (node1 != null)?
+         *
+         * Case 1: Even length
+         *   Both halves are equal in size.
+         *
+         *   Example:
+         *   1 -> 2 -> 2 -> 1
+         *
+         *   firstHalfTail = first 2
+         *   middle        = second 2
+         *   First half    => 1 -> 2
+         *   Second half   => 2 -> 1 (reversed → 1 -> 2)
+         *
+         * Case 2: Odd length
+         *   The second half contains one extra element (the middle node).
+         *
+         *   Example:
+         *   1 -> 2 -> 3 -> 2 -> 1
+         *
+         *   firstHalfTail = 2
+         *   middle        = 3
+         *   First half    => 1 -> 2
+         *   Second half   => 3 -> 2 -> 1 (reversed → 1 -> 2 -> 3)
+         *
+         * The middle element does NOT affect the palindrome property.
+         * If the elements on the left and right sides match,
+         * the center element is irrelevant.
+         *
+         * Therefore:
+         * - node1 will never overrun node2.
+         * - Iterating until node1 becomes null is sufficient and safe.
+         */
+        while (node1 != null) {
+            if (node1.val != node2.val) {
+                return false;
+            }
+
+            node1 = node1.next;
+            node2 = node2.next;
+        }
+
         return true;
     }
 
-    private ListNode findMiddleNode(ListNode head) {
+    /**
+     * Returns the tail node of the first half.
+     *
+     * For odd length:
+     *   slow stops at the exact middle,
+     *   so slowPrev becomes the node before middle.
+     *
+     * For even length:
+     *   slow stops at the second middle,
+     *   so slowPrev becomes the first middle.
+     */
+    private ListNode getFirstHalfTail(ListNode head) {
         ListNode slow = head;
         ListNode fast = head;
+        ListNode slowPrev = null;
 
         while (fast != null && fast.next != null) {
+            slowPrev = slow;
             slow = slow.next;
             fast = fast.next.next;
         }
 
-        return slow;
+        return slowPrev;
     }
 
     private ListNode reverse(ListNode head) {
-        ListNode currentNode = head;
-        ListNode prevNode = null;
+        ListNode prev = head;
+        ListNode node = head.next;
 
-        while (currentNode != null) {
-            ListNode nextNode = currentNode.next;
-            currentNode.next = prevNode;
-            prevNode = currentNode;
-            currentNode = nextNode;
+        while (node != null) {
+            ListNode next = node.next;
+            node.next = prev;
+            prev = node;
+            node = next;
         }
 
-        return prevNode; // New head of reversed list
+        return prev;
     }
 }
