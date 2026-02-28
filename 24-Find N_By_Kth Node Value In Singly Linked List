@@ -1,0 +1,33 @@
+class Solution {
+    public static int fractional_node(Node head, int k) {
+        //Get total length of list
+        int length = getLength(head);
+
+        //Compute fractional position (1-based index)
+        int pos = (int) Math.ceil((double) length / k);
+
+        //Traverse to the pos-th node
+        Node node = head;
+
+        while (pos > 1) {
+            node = node.next;
+            pos--;
+        }
+
+        //Return data of the fractional node
+        return node.data;
+    }
+
+    private static int getLength(Node head) {
+
+        Node node = head;
+        int length = 0;
+
+        while (node != null) {
+            length++;
+            node = node.next;
+        }
+
+        return length;
+    }
+}
