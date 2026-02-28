@@ -12,158 +12,155 @@
 //Bruteforce approach
 
 class Solution {
+    /**
+     * Rearranges a singly linked list such that:
+     * - All nodes at odd positions come first
+     * - Followed by all nodes at even positions
+     *
+     * NOTE:
+     * This approach does NOT rearrange node pointers.
+     * Instead, it rearranges node values.
+     *
+     * -------------------------------------------------------------
+     * Approach:
+     *
+     * 1) Traverse the linked list once and collect values:
+     *      - Values at odd positions → oddPositionValues
+     *      - Values at even positions → evenPositionValues
+     *
+     * 2) Traverse the list again and:
+     *      - First overwrite node values using oddPositionValues
+     *      - Then overwrite remaining nodes using evenPositionValues
+     *
+     * 3) Return the modified head.
+     *
+     */
     public ListNode oddEvenList(ListNode head) {
-        // Base case: If the list is empty, no rearrangement is needed
-        if (head == null) {
+        // Base case: empty list or single node → already arranged
+        if (head == null || head.next == null) {
             return head;
         }
 
-        // Lists to store the values of odd-indexed and even-indexed nodes
-        List<Integer> oddNodeValues = new ArrayList<>();
-        List<Integer> evenNodeValues = new ArrayList<>();
-        ListNode currentNode = head;
+        List<Integer> oddPositionValues = new ArrayList<>();
+        List<Integer> evenPositionValues = new ArrayList<>();
+
+        ListNode node = head;
         boolean isOddIndex = true;
 
-        // Traverse the linked list and separate node values into odd and even indexed lists
-        while (currentNode != null) {
+        // Collect values based on position
+        while (node != null) {
             if (isOddIndex) {
-                oddNodeValues.add(currentNode.val); // Add to odd-indexed list
+                oddPositionValues.add(node.val);
             } else {
-                evenNodeValues.add(currentNode.val); // Add to even-indexed list
+                evenPositionValues.add(node.val);
             }
 
-            isOddIndex = !isOddIndex; // Alternate between odd and even indexes
-            currentNode = currentNode.next; // Move to the next node
+            isOddIndex = !isOddIndex;
+            node = node.next;
         }
 
-        // Reassign the values back to the linked list
-        currentNode = head;
+        // Reassign values back to the list
+        node = head;
 
-        // Assign values from the odd-indexed list
-        for (int oddNodeValue : oddNodeValues) {
-            currentNode.val = oddNodeValue;
-            currentNode = currentNode.next;
+        for (int oddPositionValue : oddPositionValues) {
+            node.val = oddPositionValue;
+            node = node.next;
         }
 
-        // Assign values from the even-indexed list
-        for (int evenNodeValue : evenNodeValues) {
-            currentNode.val = evenNodeValue;
-            currentNode = currentNode.next;
+        for (int evenPositionValue : evenPositionValues) {
+            node.val = evenPositionValue;
+            node = node.next;
         }
 
         return head;
     }
 }
-
-
-//Better Approach
- 
-class Solution {
-    private static class NodePair {
-        private ListNode head;
-        private ListNode tail;
-
-        NodePair() {
-            head = tail = null;
-        }
-
-        private void append(ListNode node) {
-            if (head == null) {
-                head = tail = node;
-            } else {
-                tail.next = node;
-                tail = node;
-            }
-        }
-    }
-
-    public ListNode oddEvenList(ListNode head) {
-        // Base case: If the list is empty or contains only one node, return as-is
-        if (head == null || head.next == null) {
-            return head;
-        }
-        
-        // Two separate lists for odd-indexed and even-indexed nodes
-        NodePair oddList = new NodePair();
-        NodePair evenList = new NodePair();
-
-        ListNode currentNode = head; // Pointer to traverse the original list
-        boolean isOddIndex = true; // Tracks whether current position is odd
-
-        while (currentNode != null) {
-            // Append the current node to either the odd or even list
-            if (isOddIndex) {
-                oddList.append(currentNode);
-            } else {
-                evenList.append(currentNode);
-            }
-
-            isOddIndex = !isOddIndex; // Flip the flag for the next node
-            currentNode = currentNode.next;
-        }
-
-        /*
-        * Ensure both odd and even lists are properly terminated.
-        * This step is essential to avoid cycles caused by
-        * leftover 'next' pointers from the original list.
-        */
-        oddList.tail.next = null;
-        evenList.tail.next = null;
-
-        // After segregation, link the last node of the odd list to the head of the even list
-        oddList.tail.next = evenList.head;
-
-        // Return the modified list starting with the odd-indexed nodes
-        return oddList.head;
-    }
-}
-
 
 
 //Optimal Approach
 
 class Solution {
+    /**
+     * Rearranges a singly linked list such that:
+     * - All nodes at odd positions appear first
+     * - Followed by all nodes at even positions
+     *
+     * Positioning is based on 1-based indexing.
+     * (i.e., head is considered position 1 → odd position)
+     *
+     * Example:
+     * Input:  1 → 2 → 3 → 4 → 5
+     * Output: 1 → 3 → 5 → 2 → 4
+     *
+     *
+     * Approach:
+     * ---------------------------------------------------------
+     * 1) Create two separate lists:
+     *      - One for odd-positioned nodes
+     *      - One for even-positioned nodes
+     *
+     * 2) Traverse the original list once.
+     *      - Use a boolean flag (isOddPosition) to track position.
+     *      - Append current node to corresponding list.
+     *
+     * 3) While appending:
+     *      - Save next reference.
+     *      - Break original link (node.next = null)
+     *        to avoid unintended cycles.
+     *
+     * 4) Finally:
+     *      - Connect odd list tail to even list head.
+     *
+     *
+     * Why Dummy Nodes?
+     * ---------------------------------------------------------
+     * Dummy nodes simplify list construction by:
+     * - Avoiding special handling for first insertion.
+     * - Maintaining clean tail pointers for O(1) append.
+     */
     public ListNode oddEvenList(ListNode head) {
+        // Edge case: 0 or 1 node → already arranged
         if (head == null || head.next == null) {
             return head;
         }
 
-        ListNode currentOddNode = head; // Pointer to traverse nodes in odd-indexed positions
-        ListNode currentEvenNode = head.next; // Pointer to traverse nodes in even-indexed positions
-        ListNode evenHead = currentEvenNode; // Store the head of the even-indexed list to attach later
+        // Dummy heads to simplify construction
+        ListNode mergedOddHead = new ListNode(-1);
+        ListNode mergedOddTail = mergedOddHead;
 
-        /*
-         * The condition `currentEvenNode != null && currentEvenNode.next != null` is crucial:
-         * 
-         * 1. `currentEvenNode.next != null`:
-         *    - This is necessary because when the list has an even length, 
-         *      the last node will be an even-indexed node, and its `next` will be null. 
-         *      Without this check, trying to access `currentEvenNode.next` would result 
-         *      in a NullPointerException.
-         *      Example: 1 -> 2 -> 3 -> 4
-         * 
-         * 2. `currentEvenNode != null`:
-         *    - This is important for lists with an odd length, where the last node is 
-         *      an odd-indexed node. In such cases, `currentEvenNode` will become null 
-         *      during traversal, and accessing `currentEvenNode.next` without this check 
-         *      would also cause a NullPointerException.
-         *      Example: 1 -> 2 -> 3 -> 4 -> 5
-         */
-        // Rearrange the nodes into odd and even groups
-        while (currentEvenNode != null && currentEvenNode.next != null) {
-            // Link the current odd node to the next odd-indexed node
-            currentOddNode.next = currentEvenNode.next;
-            currentOddNode = currentOddNode.next; // Move the odd pointer forward
+        ListNode mergedEvenHead = new ListNode(-1);
+        ListNode mergedEvenTail = mergedEvenHead;
 
-            // Link the current even node to the next even-indexed node
-            currentEvenNode.next = currentOddNode.next;
-            currentEvenNode = currentEvenNode.next; // Move the even pointer forward
+        ListNode node = head;
+        boolean isOddPosition = true;
+
+        // Traverse original list
+        while (node != null) {
+            if (isOddPosition) {
+                // Append to odd list
+                mergedOddTail.next = node;
+                mergedOddTail = mergedOddTail.next;
+            } else {
+                // Append to even list
+                mergedEvenTail.next = node;
+                mergedEvenTail = mergedEvenTail.next;
+            }
+
+            // Save next node before detaching
+            ListNode next = node.next;
+            // Break original linkage to prevent cycle
+            node.next = null;
+
+            node = next;
+
+            // Flip position flag
+            isOddPosition = !isOddPosition;
         }
 
-        // Connect the end of the odd-indexed list to the head of the even-indexed list
-        currentOddNode.next = evenHead;
+        // Attach even list after odd list
+        mergedOddTail.next = mergedEvenHead.next;
 
-        // Return the modified list starting from the original head
-        return head;
+        // Return head of rearranged list (skip dummy)
+        return mergedOddHead.next;
     }
 }
