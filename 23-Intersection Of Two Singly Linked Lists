@@ -136,108 +136,112 @@ public class Solution {
 
 public class Solution {
     /**
-    * Core Intuition (Two-Pointer Switching Method):
-    *
-    * Think of both pointers as runners.
-    * Both runners are allowed to travel up to:
-    *      length(ListA) + length(ListB)
-    *
-    * Conceptually:
-    * - Pointer1 travels: ListA → then ListB
-    * - Pointer2 travels: ListB → then ListA
-    *
-    * Because both are allowed to traverse equal maximum distance,
-    * any initial difference in list lengths automatically cancels out.
-    *
-    * If there is a shared path (intersection), they will collide at the
-    * intersection node. If there is no intersection, both pointers will
-    * reach null at the same time.
-    *
-    * This works because we conceptually connect the two lists,
-    * ensuring that both pointers traverse equal total distance,
-    * thereby neutralizing any length difference.
-    *
-    *
-    * IMPORTANT:
-    * - Each pointer switches lists at most once.
-    * - Each pointer traverses at most length(ListA) + length(ListB).
-    * - They stop immediately once node1 == node2
-    *   or both become null at the same time.
-    *
-    *
-    * ================================================================
-    * Case 1: Intersection exists, different sizes
-    * ================================================================
-    *
-    * A: a1 → a2 → c1 → c2        (lenA = 4)
-    * B: b1 → b2 → b3 → c1 → c2  (lenB = 5)
-    *
-    * pointer1:
-    * a1(1) → a2(2) → c1(3) → c2(4) → b1(5) → b2(6) → b3(7) → c1(8)  (collision)
-    *
-    * pointer2:
-    * b1(1) → b2(2) → b3(3) → c1(4) → c2(5) → a1(6) → a2(7) → c1(8)  (collision)
-    *
-    * - Each pointer switches exactly once.
-    * - Collision occurs after 8 steps.
-    * - 8 < (lenA + lenB = 9).
-    * - Therefore, pointers do NOT necessarily traverse the full
-    *   length(ListA) + length(ListB). That value is only the upper bound.
-    *
-    *
-    * ================================================================
-    * Case 2: Intersection exists, same size
-    * ================================================================
-    *
-    * A: a1 → a2 → c1 → c2   (lenA = 4)
-    * B: b1 → b2 → c1 → c2   (lenB = 4)
-    *
-    * pointer1:
-    * a1(1) → a2(2) → c1(3)  (collision)
-    *
-    * pointer2:
-    * b1(1) → b2(2) → c1(3)  (collision)
-    *
-    * - No switch happens.
-    * - Collision occurs after 3 steps.
-    * - 3 < (lenA + lenB = 8).
-    *
-    *
-    * ================================================================
-    * Case 3: No intersection, different sizes
-    * ================================================================
-    *
-    * A: a1 → a2 → a3        (lenA = 3)
-    * B: b1 → b2 → b3 → b4   (lenB = 4)
-    *
-    * pointer1:
-    * a1 → a2 → a3 → b1 → b2 → b3 → b4 → null
-    *
-    * pointer2:
-    * b1 → b2 → b3 → b4 → a1 → a2 → a3 → null
-    *
-    * - Each pointer switches exactly once.
-    * - Both traverse full (lenA + lenB = 7).
-    * - Both reach null simultaneously.
-    *
-    *
-    * ================================================================
-    * Case 4: No intersection, same size
-    * ================================================================
-    *
-    * A: a1 → a2 → a3   (lenA = 3)
-    * B: b1 → b2 → b3   (lenB = 3)
-    *
-    * pointer1:
-    * a1(1) → a2(2) → a3(3) → null
-    *
-    * pointer2:
-    * b1(1) → b2(2) → b3(3) → null
-    *
-    * - No switch happens.
-    * - Both reach null after 3 steps.
-    * - 3 < (lenA + lenB = 6).
-    */
+     * Core Intuition (Two-Pointer Switching Method):
+     *
+     * Each pointer is allowed to traverse at most:
+     *      length(ListA) + length(ListB)
+     *
+     * Traversal pattern:
+     * - Pointer1: ListA → then ListB
+     * - Pointer2: ListB → then ListA
+     *
+     *
+     * ✅ Core Correct Idea
+     * ---------------------------------------------------------------
+     * We guarantee they meet within ≤ length(ListA) + length(ListB) because:
+     *
+     * 1) Both pointers are forced to traverse equal total distance.
+     * 2) Any initial difference in list lengths is neutralized after switching.
+     * 3) After neutralization, both pointers have equal remaining distance
+     *    to the tail of the lists.
+     * 4) Therefore, if a shared suffix exists, both enter it simultaneously.
+     *
+     * Hence:
+     * - If intersection exists → they collide inside the shared suffix.
+     * - If no intersection exists → both exhaust both lists and meet at null.
+     *
+     *
+     * Key Invariants:
+     * - Each pointer switches lists at most once.
+     * - Each pointer traverses at most length(ListA) + length(ListB).
+     * - The loop terminates immediately once node1 == node2.
+     *   (This includes the case when both become null.)
+     *
+     *
+     * ================================================================
+     * Case 1: Intersection exists, different sizes
+     * ================================================================
+     *
+     * A: a1 → a2 → c1 → c2        (lenA = 4)
+     * B: b1 → b2 → b3 → c1 → c2   (lenB = 5)
+     *
+     * pointer1:
+     * a1(1) → a2(2) → c1(3) → c2(4)
+     *      → b1(5) → b2(6) → b3(7) → c1(8)  (collision)
+     *
+     * pointer2:
+     * b1(1) → b2(2) → b3(3) → c1(4)
+     *      → c2(5) → a1(6) → a2(7) → c1(8)  (collision)
+     *
+     * - Each pointer switches exactly once.
+     * - Collision occurs after 8 steps.
+     * - 8 < (lenA + lenB = 9).
+     * - Therefore, length(ListA) + length(ListB) is only an upper bound.
+     *
+     *
+     * ================================================================
+     * Case 2: Intersection exists, same size
+     * ================================================================
+     *
+     * A: a1 → a2 → c1 → c2   (lenA = 4)
+     * B: b1 → b2 → c1 → c2   (lenB = 4)
+     *
+     * pointer1:
+     * a1(1) → a2(2) → c1(3)  (collision)
+     *
+     * pointer2:
+     * b1(1) → b2(2) → c1(3)  (collision)
+     *
+     * - No switch happens.
+     * - Collision occurs after 3 steps.
+     * - 3 < (lenA + lenB = 8).
+     *
+     *
+     * ================================================================
+     * Case 3: No intersection, different sizes
+     * ================================================================
+     *
+     * A: a1 → a2 → a3        (lenA = 3)
+     * B: b1 → b2 → b3 → b4   (lenB = 4)
+     *
+     * pointer1:
+     * a1 → a2 → a3 → b1 → b2 → b3 → b4 → null
+     *
+     * pointer2:
+     * b1 → b2 → b3 → b4 → a1 → a2 → a3 → null
+     *
+     * - Each pointer switches exactly once.
+     * - Both traverse full (lenA + lenB = 7).
+     * - Both reach null simultaneously.
+     *
+     *
+     * ================================================================
+     * Case 4: No intersection, same size
+     * ================================================================
+     *
+     * A: a1 → a2 → a3   (lenA = 3)
+     * B: b1 → b2 → b3   (lenB = 3)
+     *
+     * pointer1:
+     * a1(1) → a2(2) → a3(3) → null
+     *
+     * pointer2:
+     * b1(1) → b2(2) → b3(3) → null
+     *
+     * - No switch happens.
+     * - Both reach null after 3 steps.
+     * - 3 < (lenA + lenB = 6).
+     */
     public ListNode getIntersectionNode(ListNode head1, ListNode head2) {
         ListNode node1 = head1;
         ListNode node2 = head2;
