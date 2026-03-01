@@ -1,145 +1,183 @@
 //Bruteforce Approach
 
 class Solution {
-    static Node segregate(Node head) {
-        // Initialize currentNode to traverse the linked list
-        Node currentNode = head;
+    /**
+     * Important Limitation:
+     * - This does NOT rearrange nodes.
+     * - It only modifies node values.
+     *
+     * If node identity matters, this approach is not ideal.
+     */
+    public Node segregate(Node head) {
+        if (head == null || head.next == null) {
+            return head;
+        }
         
-        // Counters for number of 0s, 1s, and 2s in the list
-        int count0 = 0, count1 = 0, count2 = 0;
+        //Counts the frequency of 0s, 1s, and 2s.
+        int[] counts = countFrequencies(head);
+        
+        //Overwrites node values based on computed counts.
+        overwriteValues(head, counts);
 
-        // First traversal: count the occurrences of 0, 1 and 2
-        while (currentNode != null) {
-            int value = currentNode.data;
+        return head;
+    }
 
-            if (value == 0) {
+    private int[] countFrequencies(Node head) {
+        int count0 = 0;
+        int count1 = 0;
+        int count2 = 0;
+
+        Node node = head;
+
+        while (node != null) {
+            if (node.data == 0) {
                 count0++;
-            } else if (value == 1) {
+            } else if (node.data == 1) {
                 count1++;
             } else {
                 count2++;
             }
-
-            // Move to the next node
-            currentNode = currentNode.next;
+            node = node.next;
         }
 
-        // Reset currentNode to the head of the list for second traversal
-        currentNode = head;
+        return new int[]{count0, count1, count2};
+    }
 
-        // Second traversal: overwrite node data with 0s, count0 times
-        while (count0-- > 0) {
-            currentNode.data = 0;
-            currentNode = currentNode.next;
+    private void overwriteValues(Node head, int[] counts) {
+        int count0 = counts[0];
+        int count1 = counts[1];
+        int count2 = counts[2];
+
+        Node node = head;
+
+        while (node != null) {
+            if (count0 > 0) {
+                node.data = 0;
+                count0--;
+            } else if (count1 > 0) {
+                node.data = 1;
+                count1--;
+            } else {
+                node.data = 2;
+                count2--;
+            }
+
+            node = node.next;
         }
-
-        // Continue overwriting with 1s, count1 times
-        while (count1-- > 0) {
-            currentNode.data = 1;
-            currentNode = currentNode.next;
-        }
-
-        // Finally, overwrite with 2s, count2 times
-        while (count2-- > 0) {
-            currentNode.data = 2;
-            currentNode = currentNode.next;
-        }
-
-        // Return the head of the sorted linked list
-        return head;
     }
 }
-
 
 
 //Optimal Approach
 
 class Solution {
-    private static class NodePair {
-        private Node head;
-        private Node tail;
-        
-        // Appends a node to this group while maintaining head and tail pointers
-        void append(Node node) {
-            if (head == null) {
-                head = tail = node;
-            } else {
-                tail.next = node;
-                tail = node;
-            }
+    public Node segregate(Node head) {
+        // Base case: empty list or single node list
+        if (head == null || head.next == null) {
+            return head;
         }
+
+        // Dummy heads for three separate lists
+        Node headZero = new Node(-1); // Dummy node for 0s list
+        Node tailZero = headZero; // Tail pointer for 0s list
+
+        Node headOne = new Node(-1); // Dummy node for 1s list
+        Node tailOne = headOne; // Tail pointer for 1s list
+
+        Node headTwo = new Node(-1); // Dummy node for 2s list
+        Node tailTwo = headTwo; // Tail pointer for 2s list
+
+        Node node = head;
+
+        /**
+         * Traverse the original list once.
+         * Detach each node and append it
+         * to the appropriate sub-list.
+         */
+        while (node != null) {
+
+            if (node.data == 0) {
+                // Append node to 0s list
+                tailZero.next = node;
+                tailZero = tailZero.next;
+            } else if (node.data == 1) {
+                // Append node to 1s list
+                tailOne.next = node;
+                tailOne = tailOne.next;
+            } else {
+                // Append node to 2s list
+                tailTwo.next = node;
+                tailTwo = tailTwo.next;
+            }
+
+            // Store next reference before detaching
+            Node next = node.next;
+
+            // Break original linkage to avoid accidental cycles
+            node.next = null;
+
+            // Move forward
+            node = next;
+        }
+
+        // connect the three lists.
+        return connectGroups(headZero.next, tailZero, headOne.next, tailOne, headTwo.next, tailTwo);
     }
 
-    Node segregate(Node head) {
-        // Create separate NodePair containers for each group
-        NodePair zeroGroup = new NodePair();
-        NodePair oneGroup = new NodePair();
-        NodePair twoGroup = new NodePair();
+    /**
+    * Connects the three segregated lists in order:
+    *
+    *      0s → 1s → 2s
+    *
+    * IMPORTANT:
+    * The final head of the merged list will be:
+    *
+    * - headZero if 0s list exists
+    * - else headOne if 1s list exists
+    * - else headTwo
+    *
+    * Why?
+    * Because we must preserve sorted order:
+    * All 0s should appear first, then 1s, then 2s.
+    *
+    * So the first non-empty group becomes the final head.
+    */
+    private Node connectGroups(Node headZero, Node tailZero, Node headOne, Node tailOne, Node headTwo, Node tailTwo) {
+        // 0s list exists
+        if (headZero != null) {
+            if (headOne != null) {
+                // 0s → 1s
+                tailZero.next = headOne;
 
-        Node current = head;
+                if (headTwo != null) {
+                    // 1s → 2s
+                    tailOne.next = headTwo;
+                }
 
-        // Step 1: Distribute nodes into zeroGroup, oneGroup, and twoGroup
-        while (current != null) {
-            if (current.data == 0) {
-                zeroGroup.append(current);
-            } else if (current.data == 1) {
-                oneGroup.append(current);
-            } else {
-                twoGroup.append(current);
-            }
-            current = current.next;
-        }
-        
-        // Step 2: Prevent cycles by terminating the current group tails
-        if (zeroGroup.tail != null) {
-            zeroGroup.tail.next = null;
-        }
-        
-        if (oneGroup.tail != null) {
-            oneGroup.tail.next = null;
-        }
-        
-        if (twoGroup.tail != null) {
-            twoGroup.tail.next = null;
-        }
-
-        // Step 2: Connect the three groups using a dedicated function
-        return connectGroups(zeroGroup, oneGroup, twoGroup);
-    }
-
-    private Node connectGroups(NodePair zeroGroup, NodePair oneGroup, NodePair twoGroup) {
-        // Case 1: 0s are present
-        if (zeroGroup.head != null) {
-            if (oneGroup.head == null && twoGroup.head == null) {
-                return zeroGroup.head; // Only 0s present
+            } else if (headTwo != null) {
+                // 0s → 2s (no 1s present)
+                tailZero.next = headTwo;
             }
 
-            if (oneGroup.head != null && twoGroup.head != null) { // 0s, 1s, and 2s present
-                zeroGroup.tail.next = oneGroup.head;
-                oneGroup.tail.next = twoGroup.head;
-            } else if (oneGroup.head == null) { // 0s and 2s present
-                zeroGroup.tail.next = twoGroup.head;
-            } else { // 0s and 1s present
-                zeroGroup.tail.next = oneGroup.head;
+            return headZero;
+        }
+
+        // No 0s, but 1s exist
+        if (headOne != null) {
+            if (headTwo != null) {
+                // 1s → 2s
+                tailOne.next = headTwo;
             }
 
-            return zeroGroup.head;
+            return headOne;
         }
 
-        // Case 2: 0s absent, 1s are present
-        if (oneGroup.tail != null) {
-            if (twoGroup.head != null) { // 1s and 2s present
-                oneGroup.tail.next = twoGroup.head;
-            }
-            return oneGroup.head; // Only 1s present
+        //Only 2s exist
+        if (headTwo != null) {
+            return headTwo;
         }
 
-        // Case 3: Only 2s present
-        if (twoGroup.tail != null) {
-            return twoGroup.head;
-        }
-
-        // Case 4: Empty list (head was null)
+        // Should not occur if input constraints guarantee 0/1/2 values
         return null;
     }
 }
