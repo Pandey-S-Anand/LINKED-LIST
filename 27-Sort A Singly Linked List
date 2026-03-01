@@ -13,28 +13,38 @@
 
 class Solution {
     public ListNode sortList(ListNode head) {
-        // Create a list to store node values
-        List<Integer> nodeValues = new ArrayList<>();
-
-        // Traverse the singly linked list and add each node's value to the list
-        ListNode currentNode = head;
-        while (currentNode != null) {
-            nodeValues.add(currentNode.val); // Add the current node value to the list
-            currentNode = currentNode.next; // Move to the next node
+        // Base case: empty or single node
+        if (head == null || head.next == null) {
+            return head;
         }
 
-        // Sort the list of node values in ascending order
+        //Collect node values
+        List<Integer> nodeValues = collectNodeValues(head);
+
+        // Sort values
         Collections.sort(nodeValues);
 
-        // Reassign the sorted values back to the singly linked list nodes
-        currentNode = head;
+        //Reassign sorted values back to nodes
+        ListNode node = head;
         for (int nodeValue : nodeValues) {
-            currentNode.val = nodeValue; // Update the value of the current node
-            currentNode = currentNode.next; // Move to the next node
+            node.val = nodeValue;
+            node = node.next;
         }
 
-        // Return the head of the modified, sorted singly linked list
         return head;
+    }
+
+    private List<Integer> collectNodeValues(ListNode head) {
+        List<Integer> nodeValues = new ArrayList<>();
+        ListNode node = head;
+
+        //Traverses the linked list and collects node values.
+        while (node != null) {
+            nodeValues.add(node.val);
+            node = node.next;
+        }
+
+        return nodeValues;
     }
 }
 
@@ -42,112 +52,177 @@ class Solution {
 //Optimal approach
 
 class Solution {
-    private static class NodePair {
-        private ListNode head;
-        private ListNode tail;
-
-        NodePair() {
-            head = tail = null;
-        }
-
-        private void append(ListNode node) {
-            if (head == null) {
-                // First node in merged list
-                head = tail = node;
-            } else {
-                // Link current tail to the new node and update tail
-                tail.next = node;
-                tail = node;
-            }
-        }
-    }
-
+    /**
+    * Why Merge Sort for Linked List?
+    * ------------------------------------------------------------
+    *
+    * Linked Lists do NOT support random access (no indexing).
+    * Accessing the i-th element requires O(i) traversal.
+    *
+    * Because of this, many array-based sorting algorithms
+    * become inefficient for linked lists.
+    *
+    *
+    * ❌ Why NOT Quick Sort?
+    * ------------------------------------------------------------
+    * - Quick sort requires efficient partitioning.
+    * - Partitioning depends heavily on random access.
+    * - In linked lists, finding pivot position and swapping elements
+    *   is expensive (requires traversal).
+    * - Worst-case time complexity can degrade to O(n²).
+    *
+    * Therefore, quick sort is not ideal for linked lists.
+    *
+    *
+    * ❌ Why NOT Heap Sort?
+    * ------------------------------------------------------------
+    * - Heap sort requires index-based access to maintain heap structure.
+    * - Linked lists do not allow O(1) access to parent/child indices.
+    * - Building and maintaining heap becomes inefficient.
+    *
+    *
+    * ❌ Why NOT Selection Sort / Bubble Sort?
+    * ------------------------------------------------------------
+    * - These require repeated traversal to find min/max.
+    * - Time complexity O(n²).
+    * - Inefficient for large lists.
+    *
+    *
+    * ⚠️ What About Insertion Sort?
+    * ------------------------------------------------------------
+    * - Insertion sort works well for linked lists.
+    * - Because insertion in linked list is O(1) once position is found.
+    * - But finding insertion position still costs O(n).
+    * - Overall time complexity remains O(n²).
+    *
+    * It is suitable only for small lists.
+    *
+    *
+    * ✅ Why Merge Sort Is Ideal?
+    * ------------------------------------------------------------
+    * - Does NOT require random access.
+    * - Splitting list can be done using slow-fast pointer.
+    * - Merging two sorted lists can be done in O(n).
+    * - Guaranteed O(n log n) time complexity.
+    * - Very natural fit for linked list structure.
+    *
+    */
     public ListNode sortList(ListNode head) {
-        if (head == null) {
-            return null; // Empty list is already sorted
+        // Base case: empty list or single node is already sorted
+        if (head == null || head.next == null) {
+            return head;
         }
-        return mergeSort(head); // Call recursive merge sort helper
+        /*
+         * Recursively divide the list into two halves,
+         * sorts them, and merges the sorted halves.
+         */
+        return mergeSort(head);
     }
 
     private ListNode mergeSort(ListNode head) {
-        // Base case: if the list has only one node, it's already sorted
+        // Base case: single node is already sorted
         if (head.next == null) {
             return head;
         }
 
-        // Step 1: Find the middle node to split the list into two halves
-        ListNode middle = findMiddleNode(head);
-        ListNode secondHalfHead = middle.next;
+        //Find middle and split list
+        ListNode firstHalfTail = findMiddle(head);
+        ListNode secondHalfHead = firstHalfTail.next;
 
-        // Step 2: Break the link to split the list into two separate lists
-        middle.next = null;
+        //Break the list into two halves
+        firstHalfTail.next = null;
 
-        // Step 3: Recursively sort the left half and right half
-        ListNode leftHalfHead = mergeSort(head);
-        ListNode rightHalfHead = mergeSort(secondHalfHead);
+        //Recursively sort both halves
+        ListNode sortedFirstHalf = mergeSort(head);
+        ListNode sortedSecondHalf = mergeSort(secondHalfHead);
 
-        // Step 4: Merge the two sorted halves and return the merged sorted list
-        return merge(leftHalfHead, rightHalfHead);
+        //Merge sorted halves
+        return merge(sortedFirstHalf, sortedSecondHalf);
     }
 
-    private ListNode merge(ListNode head1, ListNode head2) {
-        // Initialize a helper object to manage head and tail of the merged sorted list
-        NodePair merged = new NodePair();
-
-        ListNode currentNode1 = head1;
-        ListNode currentNode2 = head2;
-
-        // Iterate while both lists have nodes remaining
-        while (currentNode1 != null && currentNode2 != null) {
-            // Append the smaller node to the merged list
-            if (currentNode1.val <= currentNode2.val) {
-                merged.append(currentNode1);
-                currentNode1 = currentNode1.next; // Move forward in list1
-            } else {
-                merged.append(currentNode2);
-                currentNode2 = currentNode2.next; // Move forward in list2
-            }
-        }
-
-        // Append any remaining nodes from list1 (if any)
-        if (currentNode1 != null) {
-            merged.append(currentNode1);
-        }
-
-        // Append any remaining nodes from list2 (if any)
-        if (currentNode2 != null) {
-            merged.append(currentNode2);
-        }
-
-        // Return the head of the merged sorted linked list
-        return merged.head;
-    }
-
-    private ListNode findMiddleNode(ListNode head) {
+    /**
+     * IMPORTANT SUBTLE POINT:
+     * -----------------------------------------------------------
+     * For EVEN length lists, this function intentionally returns
+     * the FIRST middle node (not the traditional second middle).
+     *
+     * Why is this necessary?
+     *
+     * Consider a list of length 2:
+     *      1 → 2
+     *
+     * If we return the SECOND middle (node 2):
+     *      first half  = 1 → 2
+     *      second half = null
+     *
+     * After splitting, the first half remains unchanged.
+     * The recursive call would again receive the same list (1 → 2),
+     * resulting in no reduction of problem size.
+     *
+     * This leads to:
+     *      Infinite recursion
+     *      → StackOverflowError
+     *
+     * Instead, by returning the FIRST middle:
+     *      first half  = 1
+     *      second half = 2
+     *
+     * The list is properly divided into two smaller parts.
+     * Each recursive call operates on a strictly smaller sublist,
+     * guaranteeing termination of the recursion.
+     */
+    private ListNode findMiddle(ListNode head) {
         ListNode slow = head;
         ListNode fast = head;
-        ListNode slowPrevious = null;
+        ListNode slowPrev = null;
 
         while (fast != null && fast.next != null) {
-            slowPrevious = slow;
+            slowPrev = slow;
             slow = slow.next;
             fast = fast.next.next;
         }
 
-        /*
-          Explanation:
-          - If 'fast' is NOT null, it means the list length is odd.
-            In this case, 'slow' is exactly at the middle node,
-            so return 'slow' to split after the middle.
-        
-          - If 'fast' is null, it means the list length is even.
-            In this case, 'slow' is at the second middle node,
-            so we return 'slowPrevious' (the first middle node) to split
-            the list into two nearly equal halves.
-        */
-        if (fast != null) {
-            return slow; // Odd length list - middle node
+        // EVEN length case
+        if (fast == null) {
+            return slowPrev; // return first middle
         }
-        return slowPrevious; // Even length list - first middle node
+
+        // ODD length case
+        return slow; // return exact middle
+    }
+
+    //Merges two sorted singly linked lists.
+    private ListNode merge(ListNode head1, ListNode head2) {
+        ListNode mergedHead = new ListNode(-1);
+        ListNode mergedTail = mergedHead;
+
+        ListNode node1 = head1;
+        ListNode node2 = head2;
+
+        while (node1 != null && node2 != null) {
+            if (node1.val <= node2.val) {
+                mergedTail.next = node1;
+                ListNode next = node1.next;
+                node1.next = null;
+                node1 = next;
+            } else {
+                mergedTail.next = node2;
+                ListNode next = node2.next;
+                node2.next = null;
+                node2 = next;
+            }
+
+            mergedTail = mergedTail.next;
+        }
+
+        if (node1 != null) {
+            mergedTail.next = node1;
+        }
+
+        if (node2 != null) {
+            mergedTail.next = node2;
+        }
+
+        return mergedHead.next;
     }
 }
