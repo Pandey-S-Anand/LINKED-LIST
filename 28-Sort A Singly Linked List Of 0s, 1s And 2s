@@ -177,7 +177,7 @@ class Solution {
             return headTwo;
         }
 
-        // Should not occur if input constraints guarantee 0/1/2 values
+        // Should not be reached if input constraints guarantee 0/1/2 values
         return null;
     }
 }
