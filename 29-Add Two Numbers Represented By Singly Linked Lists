@@ -1,145 +1,44 @@
 /**
  * Definition for singly-linked list.
  * public class ListNode {
- * int val;
- * ListNode next;
- * ListNode() {}
- * ListNode(int val) { this.val = val; }
- * ListNode(int val, ListNode next) { this.val = val; this.next = next; }
+ *     int val;
+ *     ListNode next;
+ *     ListNode() {}
+ *     ListNode(int val) { this.val = val; }
+ *     ListNode(int val, ListNode next) { this.val = val; this.next = next; }
  * }
  */
- 
 class Solution {
-    /**
-     * Helper class to build a singly linked list dynamically.
-     * Maintains both head and tail pointers for efficient appending.
-     */
-    private static class SinglyLinkedList {
-        private ListNode head;
-        private ListNode tail;
-
-        SinglyLinkedList() {
-            head = tail = null;
-        }
-        
-        //Appends a new node with the given value at the end of the list.
-        public void append(int num) {
-            ListNode node = new ListNode(num);
-            if (head == null) {
-                // First node being inserted
-                head = tail = node;
-            } else {
-                // Append at tail and update tail pointer
-                tail.next = node;
-                tail = node;
-            }
-        }
-    }
-
     public ListNode addTwoNumbers(ListNode head1, ListNode head2) {
-        SinglyLinkedList sum = new SinglyLinkedList(); 
-        int base = 0, carry = 0; 
+        // Dummy node simplifies list construction
+        ListNode head = new ListNode(-1);
+        ListNode tail = head;
 
-        ListNode currentNode1 = head1;
-        ListNode currentNode2 = head2;
+        ListNode node1 = head1;
+        ListNode node2 = head2;
 
-        // Traverse both lists while nodes are available in both
-        while (currentNode1 != null && currentNode2 != null) {
-            int digit1 = currentNode1.val;
-            int digit2 = currentNode2.val;
+        int carry = 0;
 
-            // Compute current digit and carry
-            base = (digit1 + digit2 + carry) % 10;
-            carry = (digit1 + digit2 + carry) / 10;
+        // Continue while any list has digits or carry remains
+        while (node1 != null || node2 != null || carry == 1) {
+            int digit1 = (node1 != null) ? node1.val : 0;
+            int digit2 = (node2 != null) ? node2.val : 0;
 
-            // Append the digit to the result list
-            sum.append(base);
+            int sum = digit1 + digit2 + carry;
 
-            // Move to next nodes
-            currentNode1 = currentNode1.next;
-            currentNode2 = currentNode2.next;
+            int newDigit = sum % 10; // Digit to store
+            carry = sum / 10; // Carry for next iteration
+
+            // Append new digit node
+            tail.next = new ListNode(newDigit);
+            tail = tail.next;
+
+            // Move forward in both lists if possible
+            node1 = (node1 != null) ? node1.next : null;
+            node2 = (node2 != null) ? node2.next : null;
         }
 
-        // Process remaining nodes in the first list
-        while (currentNode1 != null) {
-            int digit1 = currentNode1.val;
-            base = (digit1 + carry) % 10;
-            carry = (digit1 + carry) / 10;
-            sum.append(base);
-            currentNode1 = currentNode1.next;
-        }
-
-        // Process remaining nodes in the second list
-        while (currentNode2 != null) {
-            int digit2 = currentNode2.val;
-            base = (digit2 + carry) % 10;
-            carry = (digit2 + carry) / 10;
-            sum.append(base);
-            currentNode2 = currentNode2.next;
-        }
-
-        // If a carry is left after processing all digits, append it
-        if (carry == 1) {
-            sum.append(carry);
-        }
-
-        // Return the head of the newly constructed sum list
-        return sum.head;
-    }
-}
-
-
-//Aliter
-
-class Solution {
-    private static class SinglyLinkedList {
-        private ListNode head;
-        private ListNode tail;
-
-        SinglyLinkedList() {
-            head = tail = null;
-        }
-
-        public void append(int num) {
-            ListNode node = new ListNode(num);
-            if (head == null) {
-                // First node of the list
-                head = tail = node;
-            } else {
-                // Append to end and move tail
-                tail.next = node;
-                tail = node;
-            }
-        }
-    }
-
-    public ListNode addTwoNumbers(ListNode head1, ListNode head2) {
-        SinglyLinkedList sum = new SinglyLinkedList(); 
-        int base = 0;
-        int carry = 0; 
-
-        ListNode currentNode1 = head1;
-        ListNode currentNode2 = head2;
-
-        // Continue looping until all nodes are processed and carry is 0
-        while (currentNode1 != null || currentNode2 != null || carry == 1) {
-            // Fetch digits from current nodes, defaulting to 0 if node is null
-            int digit1 = currentNode1 != null ? currentNode1.val : 0;
-            int digit2 = currentNode2 != null ? currentNode2.val : 0;
-
-            // Calculate sum and carry
-            base = (digit1 + digit2 + carry) % 10;
-            carry = (digit1 + digit2 + carry) / 10;
-
-            // Append the computed digit to the result list
-            sum.append(base);
-
-            // Move to next nodes if they exist
-            currentNode1 = currentNode1 != null ? currentNode1.next : null;
-            currentNode2 = currentNode2 != null ? currentNode2.next : null;
-        }
-
-        // Return the head of the newly formed linked list
-        return sum.head;
+        // Return actual head (skip dummy)
+        return head.next;
     }
 }
