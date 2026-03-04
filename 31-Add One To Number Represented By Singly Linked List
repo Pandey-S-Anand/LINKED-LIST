@@ -1,60 +1,179 @@
 //Bruteforce approach
 
 class Solution {
-    // Helper class to build the resulting list by inserting digits at the front
-    private static class SinglyLinkedList {
-        private Node head;
 
-        SinglyLinkedList() {
-            head = null;
-        }
-
-        // Inserts a new digit node at the front of the list
-        public void insertAtFront(int num) {
-            Node node = new Node(num);
-            node.next = head;
-            head = node;
-        }
-    }
-
+    /**
+     * Adds 1 to a number represented by a singly linked list.
+     *
+     * Example:
+     *   1 → 2 → 9
+     * represents number 129
+     *
+     * After adding 1:
+     *   1 → 3 → 0
+     *
+     * ------------------------------------------------------------
+     * Brute Force Idea
+     *
+     * The least significant digit is at the end of the list,
+     * but singly linked lists allow traversal only from head → tail.
+     *
+     * Since addition must start from the least significant digit,
+     * we first reverse the list so that the last digit becomes the head.
+     *
+     * Steps:
+     *
+     * 1) Reverse the original list.
+     *    Example:
+     *        1 → 2 → 9
+     *    becomes
+     *        9 → 2 → 1
+     *
+     * 2) Perform digit-by-digit addition starting from the new head.
+     *    Initialize carry = 1 (since we need to add 1).
+     *
+     * 3) Create a new result list while computing digits.
+     *
+     * 4) Continue until:
+     *      - all digits are processed
+     *      - AND carry becomes 0
+     *
+     * 5) Reverse the result list again to restore the correct order.
+     *
+     * ------------------------------------------------------------
+     * Example:
+     *
+     * Input:
+     *   1 → 2 → 9
+     *
+     * Reverse:
+     *   9 → 2 → 1
+     *
+     * Addition:
+     *   9 + 1 = 10  → write 0, carry 1
+     *   2 + 1 = 3   → write 3, carry 0
+     *   1 + 0 = 1
+     *
+     * Result (reverse order):
+     *   0 → 3 → 1
+     *
+     * Reverse again:
+     *   1 → 3 → 0
+     */
     public Node addOne(Node head) {
-        // Step 1: Reverse the original list to process from least significant digit
-        Node currentNode = reverse(head);
+        // Reverse the list so that least significant digit comes first
+        Node node = reverse(head);
 
-        SinglyLinkedList sum = new SinglyLinkedList();
-        int base = 0, digitSum = 0, carry = 1; // Initialize carry as 1 to add one to the number
+        // Dummy node to simplify result list construction
+        Node resultHead = new Node(-1);
+        Node resultTail = resultHead;
 
-        // Step 2: Traverse reversed list and compute digit-wise sum
-        while (currentNode != null) {
-            digitSum = currentNode.data + carry;
-            base = digitSum % 10;        // New digit to store
-            carry = digitSum / 10;       // Carry to propagate
+        int carry = 1; // since we are adding 1
 
-            sum.insertAtFront(base);     // Build result in correct order by inserting at front
-            currentNode = currentNode.next;
+        /**
+         * Continue processing while:
+         * - digits remain in the list OR
+         * - carry still exists
+         */
+        while (node != null || carry == 1) {
+            int digit = node != null ? node.data : 0;
+
+            int newDigit = (digit + carry) % 10;
+            carry = (digit + carry) / 10;
+
+            // Append computed digit to result list
+            resultTail.next = new Node(newDigit);
+            resultTail = resultTail.next;
+
+            node = node != null ? node.next : null;
         }
-        
-        // Step 3: If carry remains (e.g., adding 1 to 999), insert new digit
-        if (carry == 1) {
-            sum.insertAtFront(1);
-        }
 
-        // Step 4: Return the result list's head
-        return sum.head;
+        // Reverse the result to restore forward order
+        return reverse(resultHead.next);
     }
 
     private Node reverse(Node head) {
-        Node prevNode = null;
-        Node currentNode = head;
-
-        while (currentNode != null) {
-            Node nextNode = currentNode.next;
-            currentNode.next = prevNode;    
-            prevNode = currentNode;        
-            currentNode = nextNode;
+        if (head.next == null) {
+            return head;
         }
 
-        return prevNode; // New head after reversal (was tail in the original linked list)
+        Node prev = null;
+        Node node = head;
+
+        while (node != null) {
+            Node next = node.next;
+            node.next = prev;
+            prev = node;
+            node = next;
+        }
+
+        return prev;
+    }
+}
+
+
+//Better Approach
+
+class Solution {
+    public Node addOne(Node head) {
+        Node node = reverse(head);
+
+        Node resultHead = null;
+
+        int carry = 1;
+
+        /**
+         * Improvement over the previous brute force approach:
+         *
+         * Previously we:
+         * 1) Reversed the input list
+         * 2) Built the result list in reverse order
+         * 3) Reversed the result again to restore correct order
+         *
+         * In this improved version we eliminate the final reverse operation.
+         *
+         * Instead of appending digits at the tail, we insert each newly
+         * computed digit at the FRONT of the result list.
+         *
+         * This automatically constructs the result in the correct forward
+         * order while processing digits from least significant to most
+         * significant.
+         *
+         */
+        while (node != null || carry == 1) {
+            int digit = node != null ? node.data : 0;
+
+            int newDigit = (digit + carry) % 10;
+            carry = (digit + carry) / 10;
+
+            Node newNode = new Node(newDigit);
+
+            // Insert at front to maintain correct order without reversing again
+            newNode.next = resultHead;
+            resultHead = newNode;
+
+            node = node != null ? node.next : null;
+        }
+
+        return resultHead;
+    }
+
+    private Node reverse(Node head) {
+        if (head.next == null) {
+            return head;
+        }
+
+        Node prev = null;
+        Node node = head;
+
+        while (node != null) {
+            Node next = node.next;
+            node.next = prev;
+            prev = node;
+            node = next;
+        }
+
+        return prev;
     }
 }
 
@@ -63,51 +182,75 @@ class Solution {
 
 class Solution {
     public Node addOne(Node head) {
-        // Step 1: Reverse the linked list so we can add from the least significant digit
-        Node newHead = reverse(head);
-        Node currentNode = newHead;
+        Node tail = reverse(head);
 
-        int digitSum = 0, carry = 1; // Initialize carry as 1 for the "+1" addition
+        Node node = tail;
+        int carry = 1;
+        
+        Node resultHead = null;
 
-        /* 
-         * Step 2: Traverse the reversed list while there is a carry to add.
-         * The condition 'carry == 1' is an optimization:
-         * once carry becomes 0, no further digits will change,
-         * so we can stop early instead of overwriting the remaining nodes unnecessarily.
+        /**
+         * Improvement over the previous version:
+         *
+         * In the earlier approach we:
+         * 1) Reversed the original list
+         * 2) Created entirely new nodes to build the result list
+         * 3) Inserted those nodes at the front to maintain forward order
+         *
+         * This meant:
+         * - O(n) extra space was used for new nodes.
+         * - The original nodes were not reused.
+         *
+         * In this improved version:
+         * - We reuse the existing nodes instead of allocating new ones.
+         * - The digit is updated directly in the current node (`node.data = newDigit`).
+         * - While processing the reversed list, we simultaneously rebuild the
+         *   forward order by inserting the processed node at the front.
+         *
+         *
          */
-        while (currentNode != null && carry == 1) {
-            digitSum = currentNode.data + carry;      // Add carry to current digit
-            currentNode.data = digitSum % 10;         // Update node with new digit after addition
-            carry = digitSum / 10;                    // Calculate carry for the next node
-            currentNode = currentNode.next;            // Move to next node
+
+        while (node != null) {
+            int digit = node.data;
+
+            int newDigit = (digit + carry) % 10;
+            carry = (digit + carry) / 10;
+
+            node.data = newDigit;
+            
+            Node next = node.next;
+
+            // rebuild forward order while processing digits
+            node.next = resultHead;
+            resultHead = node;
+
+            node = next;
         }
 
-        /* 
-         * Step 3: If carry remains after processing all digits,
-         * it means we've finished traversing the reversed list (which started from the original list's tail),
-         * so the original head node is now the tail of the reversed list.
-         * We add a new node with value 1 *after* this tail node (i.e., head of the original list)
-         * to account for the leftover carry (e.g., adding 1 to 999 results in 1000).
-         */
         if (carry == 1) {
-            head.next = new Node(1);
+            Node newHead = new Node(1);
+            newHead.next = head;
+            return newHead;
         }
 
-        // Step 4: Reverse the list back to restore the original order, now updated with the +1 added
-        return reverse(newHead);
+        return resultHead;
     }
 
     private Node reverse(Node head) {
-        Node prevNode = null;
-        Node currentNode = head;
-
-        while (currentNode != null) {
-            Node nextNode = currentNode.next;  
-            currentNode.next = prevNode;       
-            prevNode = currentNode;             
-            currentNode = nextNode;          
+        if (head.next == null) {
+            return head;
         }
 
-        return prevNode; // New head after reversal (tail in the original linked list)
+        Node prev = null;
+        Node node = head;
+
+        while (node != null) {
+            Node next = node.next;
+            node.next = prev;
+            prev = node;
+            node = next;
+        }
+
+        return prev;
     }
 }
