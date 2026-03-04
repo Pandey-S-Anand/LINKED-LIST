@@ -12,58 +12,79 @@
 //Bruteforce approach
  
 class Solution {
-
-    // Main function to rotate the linked list to the right by k places
     public ListNode rotateRight(ListNode head, int k) {
-        // Step 1: Get the size (length) of the linked list
-        int size = getSize(head);
+        // Edge case: empty list or single node list
+        if (head == null || head.next == null) {
+            return head;
+        }
 
-        /* Step 2 :
-         * Adjust k to ensure it is within the bounds of the singly linked list size.
-         * This step is crucial because rotating the list by a number larger than its size
-         * results in repetitive rotations. By taking k modulo the list size, we ensure
-         * that the effective number of rotations is within the range [0, size - 1],
-         * eliminating unnecessary full rotations and optimizing the solution.
+        int length = getLength(head);
+
+        /**
+         * Optimization:
+         * Rotating the list by its length results in the same list.
+         *
+         * Example:
+         * List: 1 → 2 → 3 → 4 → 5
+         * length = 5
+         *
+         * rotate by 5 → same list
+         * rotate by 10 → same list
+         * rotate by 15 → same list
+         *
+         * Therefore, rotating by k positions is equivalent to
+         * rotating by (k % length).
+         *
+         * This prevents unnecessary rotations when k is very large.
+         *
+         * Example:
+         * k = 12, length = 5
+         *
+         * 12 % 5 = 2
+         *
+         * So rotating 12 times is the same as rotating only 2 times.
          */
-        k = k % size;
+        k = k % length;
 
-        // Step 3: Perform rotation k times (one node at a time)
-        while (k-- > 0) {
-            head = rightRotateBy1(head);
+        // Perform k single right rotations
+        while (k > 0) {
+            head = rotateRightByOne(head);
+            k--;
         }
 
         return head;
     }
 
-    private int getSize(ListNode head) {
-        ListNode current = head;
-        int size = 0;
+    private ListNode rotateRightByOne(ListNode head) {
+        ListNode prevToTail = null; // Will store the node before the last node
+        ListNode node = head;
 
-        while (current != null) {
-            size++;
-            current = current.next;
+        // Traverse until we reach the last node
+        while (node.next != null) {
+            prevToTail = node;
+            node = node.next;
         }
 
-        return size;
-    }
+        // Break the link between second-last node and last node
+        prevToTail.next = null;
 
-    private ListNode rightRotateBy1(ListNode head) {
-        ListNode currentNode = head;
-        ListNode prevNode = null;
-
-        // Traverse to the last node
-        while (currentNode.next != null) {
-            prevNode = currentNode;
-            currentNode = currentNode.next;
-        }
-
-        // At this point, currentNode is the last node and prevNode is the second last node
-        prevNode.next = null; // Set second last node's next to null (new tail)
         // Move the last node to the front
-        currentNode.next = head; // Link last node to head
-        head = currentNode; // Make it the new head
+        node.next = head;
 
-        return head;
+        // Old tail becomes the new head
+        return node;
+    }
+
+    private int getLength(ListNode head) {
+        ListNode node = head;
+        int length = 0;
+
+        while (node != null) {
+            length++;
+            node = node.next;
+        }
+
+        return length;
     }
 }
 
@@ -71,54 +92,127 @@ class Solution {
 //Optimal Approach
 
 class Solution {
+    /**
+     * Core Intuition:
+     *
+     * A right rotation by k moves the last k nodes of the list to the front.
+     * Therefore, the list must be split just before the kth node from the end.
+     *
+     * Example:
+     * 1 → 2 → 3 → 4 → 5,  k = 2
+     *
+     * Last k nodes:
+     * 4 → 5
+     *
+     * After rotation:
+     * 4 → 5 → 1 → 2 → 3
+     *
+     * Hence:
+     * - The node just before the kth node from the end becomes the new tail.
+     * - The kth node from the end becomes the new head.
+     */
     public ListNode rotateRight(ListNode head, int k) {
-        // Base cases: empty list or single node or no rotation
-        if (head == null || head.next == null || k == 0) {
+
+        // Edge case: if the list is empty or has only one node, rotating it will not change the structure.
+        if (head == null || head.next == null) {
             return head;
         }
 
-        // Step 1: Get the size and the last (tail) node of the linked list
-        Object[] result = getSizeAndTail(head);
-        int size = (int) result[0];
-        ListNode tail = (ListNode) result[1];
+        int length = getLength(head);
 
-        // Step 2: Normalize k (no need to rotate more than the length of the list)
-        k = k % size;
+        /**
+         * Rotating a list by its length results in the same list.
+         *
+         * Example:
+         * length = 5
+         * rotate by 5  → same list
+         * rotate by 10 → same list
+         *
+         * Therefore only the remainder rotations matter.
+         */
+        k = k % length;
+
+        // If the effective rotation count becomes 0,
+        // the list remains unchanged.
         if (k == 0) {
-            return head; // Already in correct position
+            return head;
         }
 
-        // Step 3: Make the list circular
-        tail.next = head;
+        /**
+         * Find two important nodes in one traversal:
+         *
+         * 1) The node just before the kth node from the end → newTail
+         * 2) The last node of the list → oldTail
+         *
+         * These are sufficient to perform the rotation.
+         */
+        ListNode[] info = findPrevToKthFromEndAndTail(head, k);
 
-        // Step 4: Find the new tail node, which is the (size - k)th node from the beginning (1-based index)
-        int stepsToNewTail = size - k;
-        ListNode newTail = head;
-        while (stepsToNewTail > 1) {
-            newTail = newTail.next;
-            stepsToNewTail--;
-        }
+        ListNode newTail = info[0];
+        ListNode oldTail = info[1];
 
-        // Step 5: The new head is the node after the new tail
-        ListNode newHead = newTail.next;
+        // The kth node from the end becomes the new head
+        ListNode kthNodeFromEnd = newTail.next;
 
-        // Step 6: Break the circular connection
+        // Break the list at the new tail
         newTail.next = null;
 
-        return newHead;
+        // Attach the old tail to the original head
+        oldTail.next = head;
+
+        // Return the new head of the rotated list
+        return kthNodeFromEnd;
     }
 
-    private Object[] getSizeAndTail(ListNode head) {
-        int size = 1;
-        ListNode current = head;
+    private int getLength(ListNode head) {
+        int length = 0;
+        ListNode node = head;
 
-        // Traverse the list to find the tail and calculate size
-        while (current.next != null) {
-            current = current.next;
-            size++;
+        while (node != null) {
+            node = node.next;
+            length++;
         }
 
-        // current now points to the tail node
-        return new Object[] { size, current };
+        return length;
+    }
+
+    private ListNode[] findPrevToKthFromEndAndTail(ListNode head, int k) {
+        ListNode fast = head;
+        ListNode slow = head;
+
+        /**
+         * Advance fast pointer by k steps.
+         *
+         * Why this is safe:
+         * - If k == length, fast would become null.
+         * - But we already ensured k < length using k % length.
+         *
+         * Therefore k is always in range:
+         *      0 ≤ k ≤ length - 1
+         *
+         * So fast will always land on a valid node and never become null here.
+         */
+        while (k > 0) {
+            fast = fast.next;
+            k--;
+        }
+
+        /**
+         * Move both pointers together until fast reaches the last node.
+         *
+         * Since fast started k nodes ahead of slow, the gap between them
+         * always remains k nodes.
+         *
+         * When fast reaches the last node:
+         *
+         * fast → last node (tail)
+         * slow → node just before the kth node from the end
+         */
+        while (fast.next != null) {
+            slow = slow.next;
+            fast = fast.next;
+        }
+
+        return new ListNode[] { slow, fast };
     }
 }
