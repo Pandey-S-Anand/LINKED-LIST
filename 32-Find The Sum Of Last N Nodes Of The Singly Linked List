@@ -1,46 +1,61 @@
 //Bruteforce Approach
 
 class Solution {
+    /**
+     * Approach:
+     * 1) Compute the total length (L) of the linked list.
+     * 2) The last 'n' nodes start at index (L - n) from the head (0-based indexing).
+     * 3) Traverse to that node.
+     * 4) Sum all nodes from that position until the end of the list.
+     *
+     * Example:
+     * List: 1 → 2 → 3 → 4 → 5 → 6
+     * n = 3
+     *
+     * length = 6
+     * startIndex = 6 - 3 = 3
+     *
+     * Node at index 3 → value = 4
+     *
+     * Sum = 4 + 5 + 6 = 15
+     */
     public int sumOfLastN_Nodes(Node head, int n) {
-        // Step 1: Compute the size of the linked list
-        int targetIndex = getSize(head) - n;
+        // Determine the starting index of the last 'n' nodes
+        int targetIndex = getLength(head) - n;
 
-        // Step 2: Get the (size - n)th indexed node from the start, which is the start of the last n nodes
-        Node nthNode = getNthNode(head, targetIndex);
+        // Retrieve the node where the last 'n' nodes begin
+        Node startNode = getNodeAt(head, targetIndex);
 
-        // Step 3: Calculate and return the sum from that node to the end
-        return sumOfLastNNodes(nthNode);
+        // Compute the sum from that node until the end
+        return sumOfNodes(startNode);
     }
 
-    private int getSize(Node head) {
-        Node fast = head;
-        int size = 0;
+    //Computes the total number of nodes in the linked list.
+    private int getLength(Node head) {
+        Node node = head;
+        int length = 0;
 
-        while (fast != null && fast.next != null) {
-            fast = fast.next.next;
-            size += 2;
+        while (node != null) {
+            node = node.next;
+            length++;
         }
 
-        // If list length is odd, add 1 for the remaining node
-        if (fast != null) {
-            size++;
-        }
-
-        return size;
+        return length;
     }
 
-    private Node getNthNode(Node head, int targetIndex) {
-        Node currentNode = head;
+    // Returns the node at the given index (0-based).
+    private Node getNodeAt(Node head, int index) {
+        Node node = head;
 
-        while (targetIndex > 0) {
-            currentNode = currentNode.next;
-            targetIndex--;
+        while (index > 0) {
+            node = node.next;
+            index--;
         }
 
-        return currentNode;
+        return node;
     }
 
-    private int sumOfLastNNodes(Node node) {
+    private int sumOfNodes(Node node) {
         int sum = 0;
 
         while (node != null) {
@@ -52,14 +67,13 @@ class Solution {
     }
 }
 
-
 //Optimal approach
 
 class Solution {
     public int sumOfLastN_Nodes(Node head, int n) {
-        // Step 1: Find the Nth node from the end of the singly linked list
+        //Find the Nth node from the end of the list
         Node nthNode = getNthNodeFromEnd(head, n);
-        // Step 2: Calculate the sum of all nodes from the Nth node to the end
+        //Calculate the sum of all nodes from the Nth node to the end
         return sumOfLastNNodes(nthNode);
     }
 
