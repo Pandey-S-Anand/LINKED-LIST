@@ -11,157 +11,311 @@
 
 //Bruteforce approach
 
-/**
- * Example: Adding two numbers represented as singly linked lists
- * 
- * Input:
- * l1: 7 -> 2 -> 4 -> 3 (represents the number 7243)
- * l2: 5 -> 6 -> 4     (represents the number 564)
- * 
- * Process:
- * 1. Reverse both singly linked lists.
- *    Reverse l1: 3 -> 4 -> 2 -> 7
- *    Reverse l2: 4 -> 6 -> 5
- * 
- * 2. Add reversed numbers digit by digit using carry:
- *    - 3 + 4 + 0 = 7  (carry = 0) -> Insert 7 at the front of the result list
- *    - 4 + 6 + 0 = 10 (carry = 1) -> Insert 0 at the front of the result list
- *    - 2 + 5 + 1 = 8  (carry = 0) -> Insert 8 at the front of the result list
- *    - 7 + 0 + 0 = 7  (carry = 0) -> Insert 7 at the front of the result list
- * 
- * Result after addition (already in correct order due to front insertion):
- * 7 -> 8 -> 0 -> 7 (represents the number 7807)
- * 
- * Output:
- * The resultant singly linked list is 7 -> 8 -> 0 -> 7, representing the sum 7807.
- */
- 
 class Solution {
-    // Helper class to build a singly linked list dynamically by inserting at the front.
-    private static class SinglyLinkedList {
-        private ListNode head;
-
-        SinglyLinkedList() {
-            head = null;
-        }
-
-        // Inserts a new node with the given value at the front of the list.
-        public void insertAtFront(int num) {
-            ListNode node = new ListNode(num);
-            node.next = head;
-            head = node;
-        }
-    }
-
+    /**
+     * Adds two numbers represented by linked lists where
+     * digits are stored in FORWARD order.
+     *
+     * Example:
+     *   7243 is stored as:
+     *   7 → 2 → 4 → 3
+     *
+     * Direct addition from head is difficult because:
+     * - Addition must start from the least significant digit (rightmost).
+     * - But singly linked lists only allow traversal from left → right.
+     *
+     * ------------------------------------------------------------
+     * Brute Force Idea:
+     *
+     * 1) Reverse both lists so that least significant digit comes first.
+     *
+     *      7 → 2 → 4 → 3
+     *  becomes
+     *      3 → 4 → 2 → 7
+     *
+     * 2) Perform normal digit-by-digit addition
+     *    (same logic used when digits are already stored in reverse order).
+     *
+     * 3) The resulting sum list will also be in reverse order,
+     *    so reverse it again to restore the correct forward order.
+     *
+     * ------------------------------------------------------------
+     * Example:
+     *
+     *   7243
+     * + 564
+     *
+     * After reversing:
+     *
+     *   3 → 4 → 2 → 7
+     * + 4 → 6 → 5
+     *
+     * Result (reverse order):
+     *   7 → 0 → 8 → 7
+     *
+     * Reverse again:
+     *   7 → 8 → 0 → 7
+     *
+     */
     public ListNode addTwoNumbers(ListNode head1, ListNode head2) {
+        // Reverse both lists so addition can start from least significant digit
         head1 = reverse(head1);
         head2 = reverse(head2);
-        return sumTwoNumbers(head1, head2);
+
+        // Perform addition on reversed lists
+        ListNode result = sumTwoNumbers(head1, head2);
+
+        // Reverse result to restore forward order
+        return reverse(result);
     }
 
     private ListNode sumTwoNumbers(ListNode head1, ListNode head2) {
-        SinglyLinkedList sum = new SinglyLinkedList();
-        int base = 0, carry = 0;
+        ListNode head = new ListNode(-1);
+        ListNode tail = head;
 
-        ListNode currentNode1 = head1;
-        ListNode currentNode2 = head2;
+        ListNode node1 = head1;
+        ListNode node2 = head2;
 
-        // Continue looping until all nodes are processed and carry is 0
-        while (currentNode1 != null || currentNode2 != null || carry == 1) {
-            // Fetch digits from current nodes, defaulting to 0 if node is null
-            int digit1 = currentNode1 != null ? currentNode1.val : 0;
-            int digit2 = currentNode2 != null ? currentNode2.val : 0;
+        int carry = 0;
 
-            // Calculate sum and carry
-            base = (digit1 + digit2 + carry) % 10;
-            carry = (digit1 + digit2 + carry) / 10;
+        /**
+         * Continue while:
+         * - digits remain in either list, OR
+         * - carry is still present.
+         */
+        while (node1 != null || node2 != null || carry == 1) {
 
-            // Append the computed digit to the result list
-            sum.insertAtFront(base);
+            int digit1 = node1 != null ? node1.val : 0;
+            int digit2 = node2 != null ? node2.val : 0;
 
-            // Move to next nodes if they exist
-            currentNode1 = currentNode1 != null ? currentNode1.next : null;
-            currentNode2 = currentNode2 != null ? currentNode2.next : null;
+            int sum = digit1 + digit2 + carry;
+
+            int newDigit = sum % 10;
+            carry = sum / 10;
+
+            // Append resulting digit
+            tail.next = new ListNode(newDigit);
+            tail = tail.next;
+
+            // Move forward in lists if possible
+            node1 = node1 != null ? node1.next : null;
+            node2 = node2 != null ? node2.next : null;
         }
 
-        // Return the head of the newly formed linked list
-        return sum.head;
+        // Skip dummy node
+        return head.next;
     }
 
     private ListNode reverse(ListNode head) {
-        ListNode prevNode = null;
-        ListNode currentNode = head;
-
-        while (currentNode != null) {
-            ListNode nextNode = currentNode.next;
-            currentNode.next = prevNode;
-            prevNode = currentNode;
-            currentNode = nextNode;
+        // Single node list remains unchanged
+        if (head.next == null) {
+            return head;
         }
 
-        return prevNode;
+        ListNode prev = null;
+        ListNode node = head;
+
+        while (node != null) {
+            ListNode next = node.next; // Save next node
+            node.next = prev; // Reverse link
+            prev = node; // Move prev forward
+            node = next; // Continue traversal
+        }
+
+        // 'prev' becomes new head
+        return prev;
     }
 }
 
 
 //Optimal approach
 
-/*
- * This approach uses stacks to reverse the digits of both input singly linked lists.
- * By pushing digits onto the stacks, we simulate the reversal. Then, by popping digits 
- * from the stacks, we add them starting from the least significant digit.
- */
-
 class Solution {
-    private static class SinglyLinkedList {
-        private ListNode head;
+    /**
+     * Brute Force Improvement:
+     *
+     * We reverse both input lists so that addition can start from the
+     * least significant digit (rightmost digit).
+     *
+     * Unlike the previous brute force solution, we DO NOT reverse the
+     * result list at the end.
+     *
+     * Instead, during addition we insert every newly computed digit
+     * at the FRONT of the result list.
+     *
+     * This automatically reconstructs the final number in forward order.
+     *
+     * Example:
+     *   7243 + 564
+     *
+     * After reversing inputs:
+     *   3 → 4 → 2 → 7
+     * + 4 → 6 → 5
+     *
+     * Digits produced (LSB → MSB):
+     *   7, 0, 8, 7
+     *
+     * By inserting at the head each time:
+     *
+     * step1: 7
+     * step2: 0 → 7
+     * step3: 8 → 0 → 7
+     * step4: 7 → 8 → 0 → 7
+     *
+     * The result is already in correct forward order,
+     * eliminating the need for a final reversal.
+     */
+    public ListNode addTwoNumbers(ListNode head1, ListNode head2) {
+        head1 = reverse(head1);
+        head2 = reverse(head2);
 
-        SinglyLinkedList() {
-            head = null;
-        }
-
-        public void insertAtFront(int num) {
-            ListNode node = new ListNode(num);
-            node.next = head;
-            head = node;
-        }
+        return sumTwoNumbers(head1, head2);
     }
 
-    public ListNode addTwoNumbers(ListNode num1, ListNode num2) {
-        Stack<Integer> num1Stack = new Stack<>(); // Stack to reverse num1
-        Stack<Integer> num2Stack = new Stack<>(); // Stack to reverse num2
+    private ListNode sumTwoNumbers(ListNode head1, ListNode head2) {
+        ListNode head = null;
 
-        // Push all digits from the first linked list to stack
-        while (num1 != null) {
-            num1Stack.push(num1.val);
-            num1 = num1.next;
+        ListNode node1 = head1;
+        ListNode node2 = head2;
+
+        int carry = 0;
+
+        while (node1 != null || node2 != null || carry == 1) {
+            int digit1 = node1 != null ? node1.val : 0;
+            int digit2 = node2 != null ? node2.val : 0;
+
+            int sum = digit1 + digit2 + carry;
+
+            int newDigit = sum % 10;
+            carry = sum / 10;
+
+            /**
+             * Key Improvement:
+             * Insert the new digit at the FRONT of the result list.
+             *
+             * This builds the number in correct forward order
+             * without needing a final reverse operation.
+             */
+            ListNode newNode = new ListNode(newDigit);
+            newNode.next = head;
+            head = newNode;
+
+            node1 = node1 != null ? node1.next : null;
+            node2 = node2 != null ? node2.next : null;
         }
 
-        // Push all digits from the second linked list to stack
-        while (num2 != null) {
-            num2Stack.push(num2.val);
-            num2 = num2.next;
+        return head;
+    }
+
+    private ListNode reverse(ListNode head) {
+        if (head.next == null) {
+            return head;
         }
 
-        int base = 0, carry = 0, digitSum = 0;
-        SinglyLinkedList sum = new SinglyLinkedList();
+        ListNode prev = null;
+        ListNode node = head;
 
-        // Add digits from both stacks until all are processed and carry is 0
-        while (!num1Stack.isEmpty() || !num2Stack.isEmpty() || carry == 1) {
-            // Pop digit from stack or treat as 0 if empty
-            int digit1 = num1Stack.isEmpty() ? 0 : num1Stack.pop();
-            int digit2 = num2Stack.isEmpty() ? 0 : num2Stack.pop();
-
-            // Compute sum of digits and carry
-            digitSum = digit1 + digit2 + carry;
-            base = digitSum % 10; // Current digit to store
-            carry = digitSum / 10; // Carry for next iteration
-
-            // Prepend the current digit to the result list
-            sum.insertAtFront(base);
+        while (node != null) {
+            ListNode next = node.next;
+            node.next = prev;
+            prev = node;
+            node = next;
         }
 
-        // Return the head of the result list (most significant digit first)
-        return sum.head;
+        return prev;
+    }
+}
+
+
+//Aliter (without reversing the list)
+
+class Solution {
+    /**
+     * Adds two numbers represented by singly linked lists where
+     * digits are stored in FORWARD order.
+     *
+     * Example:
+     *   7243  →  7 → 2 → 4 → 3
+     * + 564   →  5 → 6 → 4
+     *
+     * Direct addition from head is difficult because addition must start
+     * from the least significant digit (rightmost), but a singly linked list
+     * only allows traversal from left to right.
+     *
+     * ------------------------------------------------------------
+     * Approach (Stack-Based Solution)
+     *
+     * 1) Push all digits from both lists into two stacks.
+     *    This reverses the access order so that the least
+     *    significant digits are processed first.
+     *
+     *    Example stacks:
+     *
+     *    stack1 (top → bottom): 3,4,2,7
+     *    stack2 (top → bottom): 4,6,5
+     *
+     * 2) Pop digits from both stacks and perform standard
+     *    digit-by-digit addition with carry.
+     *
+     * 3) Each computed digit is inserted at the FRONT of the
+     *    result list so that the final number remains in
+     *    forward order.
+     *
+     */
+    public ListNode addTwoNumbers(ListNode head1, ListNode head2) {
+        ListNode head = null;
+
+        // Stacks to simulate reverse traversal of the lists
+        Deque<Integer> digitsStack1 = new ArrayDeque<>();
+        Deque<Integer> digitsStack2 = new ArrayDeque<>();
+
+        ListNode node1 = head1;
+        ListNode node2 = head2;
+
+        /**
+         * Push digits of both lists into stacks.
+         * This allows us to process digits starting
+         * from the least significant position.
+         */
+        while (node1 != null || node2 != null) {
+            if (node1 != null) {
+                digitsStack1.push(node1.val);
+                node1 = node1.next;
+            }
+
+            if (node2 != null) {
+                digitsStack2.push(node2.val);
+                node2 = node2.next;
+            }
+        }
+
+        int carry = 0;
+
+        /**
+         * Pop digits from stacks and perform addition.
+         *
+         * Continue while:
+         * - digits remain in either stack
+         * - or a carry remains
+         */
+        while (!digitsStack1.isEmpty() || !digitsStack2.isEmpty() || carry == 1) {
+            int digit1 = !digitsStack1.isEmpty() ? digitsStack1.pop() : 0;
+            int digit2 = !digitsStack2.isEmpty() ? digitsStack2.pop() : 0;
+
+            int sum = digit1 + digit2 + carry;
+
+            int newDigit = sum % 10;
+            carry = sum / 10;
+
+            /**
+             * Insert the new digit at the front of the result list.
+             * This maintains the correct forward order of digits.
+             */
+            ListNode newNode = new ListNode(newDigit);
+            newNode.next = head;
+            head = newNode;
+        }
+
+        return head;
     }
 }
