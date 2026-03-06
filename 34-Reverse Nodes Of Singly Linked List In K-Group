@@ -9,138 +9,103 @@
  * }
  */
 
-//Naive implementation
- 
 class Solution {
     public ListNode reverseKGroup(ListNode head, int k) {
-        if (k == 1) {
-            return head; // No need to reverse if k == 1 
-        }
+        // Head of the current group being processed
+        ListNode groupHead = head;
 
-        // Step 1: Reverse the first k nodes separately
-        ListNode kthNode = findKthNodeIfPresent(head, k); // Get the kth node from the first group (i.e tail of first group)
-        ListNode nextGroupHead = kthNode.next; // Save the next group's head
-        kthNode.next = null; // Temporarily break the list to isolate the first k nodes
+        // Tail of the previously reversed group
+        ListNode previousGroupTail = null;
 
-        /* 🔁 Important: After reversing k nodes:
-        - The original head of the group becomes the tail
-        - The kth node (tail of the group before reversal) becomes the new head
-        */
-        reverseList(head); // Reverse the first k nodes
+        // Traversal pointer
+        ListNode node = head;
 
-        ListNode newHead = kthNode; // After reversing, kthNode becomes new head (was originally tail)
-        head.next = nextGroupHead; // Connect the tail (was originally head) to the next group head
-        ListNode lastGroupTail = head; // Update lastGroupTail to point to the first group tail (i.e originally head)
+        int nodeCount = 0;
 
-        // Step 2: Process the rest of the list group by group
-        ListNode currentNode = nextGroupHead;
+        while (node != null) {
+            nodeCount++;
 
-        while (currentNode != null) {
-            // Try to get the kth node in the next group
-            kthNode = findKthNodeIfPresent(currentNode, k);
-            if (kthNode == null) {
-                break; // Less than k nodes left — no more reversal
+            /**
+             * When nodeCount becomes a multiple of k,
+             * we have reached the end of a group of size k.
+             */
+            if (nodeCount % k == 0) {
+                // Save the start of the next group before breaking the list
+                ListNode nextGroupHead = node.next;
+
+                // Temporarily terminate the current group
+                node.next = null;
+
+                /**
+                * Reverse the current group.
+                *
+                * Example:
+                * groupHead: 1 → 2 → 3
+                *
+                * After reversal:
+                * 3 → 2 → 1
+                *
+                * The reverse() method returns the new head of the reversed group,
+                * which was originally the tail of the group before the reversal.
+                * The original groupHead becomes the tail of this reversed group.
+                */
+                ListNode groupTail = reverse(groupHead);
+
+                /**
+                 * If this is the first reversed group,
+                 * update the overall head of the list.
+                 */
+                if (previousGroupTail == null) {
+                    head = groupTail;
+                } else {
+                    /**
+                     * Otherwise connect the previous group's tail
+                     * to the head of the newly reversed group.
+                     */
+                    previousGroupTail.next = groupTail;
+                }
+
+                /**
+                 * After reversal, the original groupHead becomes
+                 * the tail of the current group.
+                 */
+                previousGroupTail = groupHead;
+
+                // Move to the next group
+                groupHead = nextGroupHead;
+                node = nextGroupHead;
+            } else {
+                // Continue traversing nodes within the current group
+                node = node.next;
             }
-
-            nextGroupHead = kthNode.next; // Save the head of the next group
-            kthNode.next = null; // Break the current group from the rest
-
-            reverseList(currentNode); // Reverse current k-group
-
-            lastGroupTail.next = kthNode; // Link the last group tail to current group's head (was originally tail)
-            lastGroupTail = currentNode; // Update the tail pointer to current group's tail (was originally head)
-
-            currentNode = nextGroupHead; // Move to the next group
         }
 
-        // Attach any remaining nodes (less than k) at the end
-        lastGroupTail.next = currentNode;
-
-        return newHead; // Return the head of the fully processed list
-    }
-
-    private ListNode findKthNodeIfPresent(ListNode head, int k) {
-        ListNode currentNode = head;
-        while (currentNode != null && k > 1) {
-            currentNode = currentNode.next;
-            k--;
-        }
-        return currentNode; // Return the k-th node (or null if not enough nodes)
-    }
-
-    private void reverseList(ListNode head) {
-        ListNode prevNode = null;
-        ListNode currentNode = head;
-
-        while (currentNode != null) {
-            ListNode nextNode = currentNode.next;
-            currentNode.next = prevNode;
-            prevNode = currentNode;
-            currentNode = nextNode;
-        }
-    }
-}
-
-
-//Concise implementation
-
-class Solution {
-    public ListNode reverseKGroup(ListNode head, int k) {
-        if (k == 1) {
-            return head;
-        }
-
-        ListNode currentNode = head;
-        ListNode lastGroupTail = null;
-
-        while (currentNode != null) {
-            ListNode kthNode = findKthNodeIfPresent(currentNode, k);
-            if (kthNode == null) {
-                break;
-            }
-
-            ListNode nextGroupHead = kthNode.next;
-            kthNode.next = null;
-
-            reverseList(currentNode);
-
-            // Set head to the new head of the first reversed group (originally the kth node, i.e., the tail of the first group)
-            if (lastGroupTail == null) {
-                head = kthNode;
-            }
-
-            if (lastGroupTail != null) {
-                lastGroupTail.next = kthNode;
-            }
-
-            lastGroupTail = currentNode;
-
-            currentNode = nextGroupHead;
-        }
-
-        lastGroupTail.next = currentNode;
+        /**
+         * After traversal ends, the last group may contain
+         * fewer than k nodes. This group should remain unchanged.
+         *
+         * We simply attach it to the tail of the last processed group.
+         */
+        previousGroupTail.next = groupHead;
 
         return head;
     }
 
-    private ListNode findKthNodeIfPresent(ListNode head, int k) {
-        ListNode currentNode = head;
-        while (currentNode != null && k > 1) {
-            currentNode = currentNode.next;
-            k--;
+    private ListNode reverse(ListNode head) {
+        if (head.next == null) {
+            return head;
         }
-        return currentNode;
-    }
 
-    private void reverseList(ListNode head) {
-        ListNode prevNode = null;
-        ListNode currentNode = head;
+        ListNode prev = null;
+        ListNode node = head;
 
-        while (currentNode != null) {
-            ListNode nextNode = currentNode.next;
-            currentNode.next = prevNode;
-            prevNode = currentNode;
-            currentNode = nextNode;
+        while (node != null) {
+            ListNode next = node.next;
+            node.next = prev;
+            prev = node;
+            node = next;
         }
+
+        return prev;
     }
 }
