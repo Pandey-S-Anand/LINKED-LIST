@@ -16,142 +16,218 @@ class Node {
 //Bruteforce approach
 
 class Solution {
-
-    // Helper class to build a singly linked list using the 'next' pointer
-    private class RandomSinglyLinkedList {
-        private Node head;
-        private Node tail;
-
-        // Appends a node with given value and returns the newly created node
-        public Node append(int num) {
-            Node node = new Node(num);
-            if (head == null) {
-                head = tail = node;
-            } else {
-                tail.next = node;
-                tail = node;
-            }
-            return node;
-        }
-    }
-
+    /**
+     * Creates a deep copy of a linked list where each node contains:
+     * - a 'next' pointer
+     * - a 'random' pointer that may point to any node in the list (or null)
+     *
+     * Approach (HashMap / Two-Pass Method):
+     *
+     * Pass 1:
+     * - Traverse the original list.
+     * - For every original node, create a new copy node with the same value.
+     * - Store the mapping:
+     *        originalNode → copiedNode
+     *
+     * Pass 2:
+     * - Traverse the original list again.
+     * - Use the stored mapping to correctly assign:
+     *        copiedNode.next
+     *        copiedNode.random
+     *
+     * Why this works:
+     * The HashMap allows us to instantly locate the copied version
+     * of any original node when assigning pointers.
+     */
     public Node copyRandomList(Node head) {
-        // Step 1: Initialize a helper list for cloned nodes
-        RandomSinglyLinkedList clonedList = new RandomSinglyLinkedList();
+        // Map storing relation between original nodes and their copies
+        Map<Node, Node> nodeCopyMap = new HashMap<>();
 
-        // Step 2: Map to track original node ➝ cloned node
-        Map<Node, Node> map = new HashMap<>();
+        Node node = head;
 
-        // First pass: Clone the list using next pointers and populate the map
-        Node currentNode = head;
-        while (currentNode != null) {
-            Node cloneNode = clonedList.append(currentNode.val); // Clone node with same value
-            map.put(currentNode, cloneNode); // Map original → clone
-            currentNode = currentNode.next;
+        // Create copy nodes and store mapping.
+        while (node != null) {
+            Node copiedNode = new Node(node.val);
+            // Map original node to its copy
+            nodeCopyMap.put(node, copiedNode);
+            node = node.next;
         }
 
-        // Assign correct random pointers to cloned nodes using the map
-        currentNode = head;
-        while (currentNode != null) {
-            Node clonedNode = map.get(currentNode); // Cloned version of current node
-            Node randomNode = map.get(currentNode.random); // Cloned version of random target
-            clonedNode.random = randomNode; // Set the cloned node's random pointer
-            currentNode = currentNode.next;
+        node = head;
+
+        //Assign next and random pointers for copied nodes.
+        while (node != null) {
+            Node copiedNode = nodeCopyMap.get(node);
+            // Set next pointer using the mapping
+            copiedNode.next = nodeCopyMap.get(node.next);
+            // Set random pointer using the mapping
+            copiedNode.random = nodeCopyMap.get(node.random);
+            node = node.next;
         }
 
-        // Return head of the cloned linked list
-        return clonedList.head;
+        // The head of the deep-copied list is the mapped copy of the original head.
+        return nodeCopyMap.get(head);
     }
 }
-
 
 
 //Optimal Approach
 
 class Solution {
     /**
-     * Helper class to build a singly linked list using the 'next' pointer.
-     * Used to separate and construct the copied list from interleaved structure.
+     * In the HashMap approach we maintain a mapping:
+     *
+     *      originalNode → copiedNode
+     *
+     * This mapping allows us to easily find the copy corresponding
+     * to any original node when assigning the `next` and `random` pointers.
+     *
+     * Example:
+     *
+     * originalNodeA → copiedNodeA
+     * originalNodeB → copiedNodeB
+     *
+     * Then we set:
+     *
+     * copiedNodeA.next   = map.get(originalNodeA.next)
+     * copiedNodeA.random = map.get(originalNodeA.random)
+     *
+     *
+     * How this solution avoids HashMap:
+     * ---------------------------------
+     * Instead of storing the mapping externally in a HashMap,
+     * we encode the mapping directly inside the linked list.
+     *
+     * We insert the copied node immediately after its original node:
+     *
+     * Original:
+     * A → B → C
+     *
+     * After interleaving:
+     * A → A' → B → B' → C → C'
+     *
+     * Now the mapping becomes implicit:
+     *
+     *      originalNode.next → copiedNode
+     *
+     * Therefore:
+     *
+     * copiedNode.random = originalNode.random.next
+     *
+     * because `originalNode.random.next` is the copied version of the
+     * random node.
+     *
+     *
+     * Steps:
+     * ------
+     * 1) Interleave copied nodes within the original list.
+     * 2) Populate random pointers of copied nodes using the implicit mapping.
+     * 3) Separate the original list and the copied list.
+     *
      */
-    private class RandomSinglyLinkedList {
-        private Node head;
-        private Node tail;
-
-        // Appends the given node to the linked list.
-        public void append(Node node) {
-            if (head == null) {
-                head = tail = node;
-            } else {
-                tail.next = node;
-                tail = node;
-            }
-            return node;
-        }
-    }
-
     public Node copyRandomList(Node head) {
         if (head == null) {
-            return head;
+            return null;
         }
 
-        // Step 1: Interleave original and copied nodes
-        interleaveOriginalAndCopiedNodes(head);
+        // Step 1: Insert copied nodes between original nodes
+        interleaveCopiedNodes(head);
 
-        // Step 2: Assign random pointers to the copied nodes
-        populateCopiedNodesRandomPointer(head);
+        // Step 2: Assign random pointers for copied nodes
+        assignRandomPointers(head);
 
-        // Step 3: Separate the copied nodes to form the final deep copy
-        return segregateCopiedNodes(head);
+        // Step 3: Separate original list and copied list
+        return separateListsAndExtractCopy(head);
     }
 
     /**
-     * Creates a copy of each node and inserts it right next to the original node.
-     * Example: A → B → C becomes A → A' → B → B' → C → C'
+     * Step 1:
+     * Insert copied nodes immediately after their corresponding original nodes.
+     *
+     * Example:
+     *
+     * Before:
+     * A → B → C
+     *
+     * After:
+     * A → A' → B → B' → C → C'
      */
-    private void interleaveOriginalAndCopiedNodes(Node head) {
-        Node currentNode = head;
-        while (currentNode != null) {
-            Node copiedNode = new Node(currentNode.val);   // Create copy node
-            Node nextNode = currentNode.next;              // Store next pointer
-            currentNode.next = copiedNode;                 // Link original → copy
-            copiedNode.next = nextNode;                    // Link copy → next original
-            currentNode = nextNode;                        // Move to next original node
+    private void interleaveCopiedNodes(Node head) {
+
+        Node node = head;
+
+        while (node != null) {
+            Node nextOriginalNode = node.next;
+            Node copiedNode = new Node(node.val);
+            node.next = copiedNode;
+            copiedNode.next = nextOriginalNode;
+            node = nextOriginalNode;
         }
     }
 
     /**
-     * Assigns random pointers for the copied nodes.
-     * Since each copied node is placed immediately after its original counterpart,
-     * we can set the copied node's random pointer using: copiedNode.random = originalNode.random.next.
+     * Step 2:
+     * Assign random pointers for the copied nodes.
+     *
+     * Because the copied node is always placed right after the original node,
+     * the copied version of any node can be accessed using `.next`.
+     *
+     * Therefore:
+     *
+     * copiedNode.random = originalNode.random.next
      */
-    private void populateCopiedNodesRandomPointer(Node head) {
-        Node currentNode = head;
-        while (currentNode != null) {
-            Node originalRandomNode = currentNode.random;
-            Node copiedNode = currentNode.next;
+    private void assignRandomPointers(Node head) {
+
+        Node node = head;
+
+        while (node != null) {
+            Node copiedNode = node.next;
+            Node originalRandomNode = node.random;
+
             if (originalRandomNode == null) {
                 copiedNode.random = null;
             } else {
                 copiedNode.random = originalRandomNode.next;
             }
-            currentNode = copiedNode.next; // Move to next original node
+
+            // Move to the next original node
+            node = copiedNode.next;
         }
     }
 
-    // Separates the interleaved original and copied nodes.
-    private Node segregateCopiedNodes(Node head) {
-        Node currentNode = head;
-        RandomSinglyLinkedList list = new RandomSinglyLinkedList();
+    /**
+     * Step 3:
+     * Separate the interleaved list into:
+     *
+     * 1) Original list
+     * 2) Deep copied list
+     *
+     * Example:
+     *
+     * A → A' → B → B' → C → C'
+     *
+     * becomes
+     *
+     * Original: A → B → C
+     * Copy:     A' → B' → C'
+     */
+    private Node separateListsAndExtractCopy(Node head) {
+        Node copiedHead = head.next;
 
-        while (currentNode != null) {
-            Node copiedNode = currentNode.next;            // Get the copied node
-            currentNode.next = copiedNode.next;            // Restore the original next link
-            list.append(copiedNode);                       // Add copied node to new list
-            Node nextOriginal = copiedNode.next;           // Move to next original
-            copiedNode.next = null;                        // Clean up next pointer of copied node
-            currentNode = nextOriginal;                    // Move forward in original list
+        Node originalNode = head;
+        Node copiedNode = head.next;
+
+        while (copiedNode.next != null) {
+            Node nextOriginalNode = copiedNode.next;
+            originalNode.next = nextOriginalNode;
+            copiedNode.next = nextOriginalNode.next;
+            originalNode = nextOriginalNode;
+            copiedNode = copiedNode.next;
         }
 
-        return list.head; // Return the head of the copied list
+        // Restore original list's final pointer
+        originalNode.next = null;
+
+        return copiedHead;
     }
 }
