@@ -1,121 +1,94 @@
-//Bruteforce approach
-
 class Solution {
-    // Helper class to build a singly linked list using the bottom pointer
-    private class SinglyLinkedList {
-        private Node head;
-        private Node tail;
-
-        // Appends a new node with the given data to the bottom of the list
-        public void append(int data) {
-            Node node = new Node(data);
-            if (head == null) {
-                head = tail = node;
-            } else {
-                tail.bottom = node;
-                tail = node;
-            }
-        }
-    }
-
-    Node flatten(Node root) {
-        Node currentNode = root;
-        List<Integer> nodeValues = new ArrayList<>();
-
-        //Step 1: Traverse all vertical (bottom) lists via the main horizontal (next) list
-        while (currentNode != null) {
-            Node currentBottomNode = currentNode;
-            while (currentBottomNode != null) {
-                nodeValues.add(currentBottomNode.data); // Collect each node's data
-                currentBottomNode = currentBottomNode.bottom;
-            }
-            currentNode = currentNode.next;
-        }
-
-        // Step 2: Sort all collected values to flatten the list in sorted order
-        Collections.sort(nodeValues);
-
-        // Step 3: Build a new flattened list using the sorted values and bottom pointers
-        SinglyLinkedList singlyLinkedList = new SinglyLinkedList();
-        for (int nodeValue : nodeValues) {
-            singlyLinkedList.append(nodeValue); // Append each sorted value to new list
-        }
-
-        // Final output is a flat list where all nodes are connected via bottom pointers
-        return singlyLinkedList.head;
-    }
-}
-
-
-
-
-//Optimal approach
-
-class Solution {
-    // Helper class to maintain the head and tail of the merged list using bottom pointers
-    private static class NodePair {
-        private Node head;
-        private Node tail;
-
-        NodePair() {
-            head = tail = null;
-        }
-
-        // Appends a node to the flattened list using the bottom pointer.
-        // Note: The flattened list will be printed using the bottom pointer, not the next pointer.
-        public void append(Node node) {
-            if (head == null) {
-                head = tail = node;
-            } else {
-                tail.bottom = node;
-                tail = node;
-            }
-        }
-    }
-
+    /**
+     * Flattens a linked list where:
+     * - 'next' pointers connect different vertical lists
+     * - 'bottom' pointers form a sorted list vertically
+     *
+     * Example structure:
+     *
+     * 5 → 10 → 19 → 28
+     * |    |     |     |
+     * 7    20    22    35
+     * |          |     |
+     * 8          50    40
+     * |                |
+     * 30               45
+     *
+     * Each vertical list (via bottom) is already sorted.
+     *
+     * Strategy:
+     * - Recursively flatten the list on the right.
+     * - Then merge the current vertical list with the already flattened right side.
+     */
     public Node flatten(Node root) {
-        // Base case: if only one vertical list is left, return it
-        if (root.next == null) {
+        // If list is empty or only one vertical list exists, it is already flattened.
+        if (root == null || root.next == null) {
             return root;
         }
 
-        // Step 1: Recursively flatten the right side of the list
-        Node nextFlattenedHead = flatten(root.next);
+        /**
+         * Recursively flatten the lists to the right.
+         *
+         * After this call, 'rightHead' represents the flattened
+         * version of all lists to the right of the current root.
+         */
+        Node rightHead = flatten(root.next);
 
-        // Step 2: Merge current vertical list (root) with the flattened right side
-        return merge(root, nextFlattenedHead);
+        /**
+         * Merge the current vertical list (root)
+         * with the flattened right list.
+         */
+        return mergeSortedLists(root, rightHead);
     }
 
-    private Node merge(Node head1, Node head2) {
-        NodePair merged = new NodePair();
+    /**
+     * Merges two sorted linked lists that use the 'bottom' pointer.
+     *
+     * head1 → bottom chain
+     * head2 → bottom chain
+     *
+     * Returns the head of the merged sorted bottom list.
+     */
+    private Node mergeSortedLists(Node head1, Node head2) {
+        Node mergedHead = new Node(-1);
+        Node mergedTail = mergedHead;
 
-        Node currentNode1 = head1;
-        Node currentNode2 = head2;
+        Node node1 = head1;
+        Node node2 = head2;
 
-        // Merge both lists in sorted order using bottom pointers
-        while (currentNode1 != null && currentNode2 != null) {
-            int data1 = currentNode1.data;
-            int data2 = currentNode2.data;
+        while (node1 != null && node2 != null) {
 
-            if (data1 <= data2) {
-                merged.append(currentNode1);       // Append the smaller node
-                currentNode1 = currentNode1.bottom; // Move to next node in list 1
+            if (node1.data <= node2.data) {
+                // Attach node1 and move node1 down
+                mergedTail.bottom = node1;
+                node1 = node1.bottom;
+
             } else {
-                merged.append(currentNode2);       // Append the smaller node
-                currentNode2 = currentNode2.bottom; // Move to next node in list 2
+                // Attach node2 and move node2 down
+                mergedTail.bottom = node2;
+                node2 = node2.bottom;
             }
+
+            // Advance the tail of the merged list
+            mergedTail = mergedTail.bottom;
         }
 
-        // Attach any remaining nodes from list 1
-        if (currentNode1 != null) {
-            merged.append(currentNode1);
+        /**
+         * If one list still has remaining nodes,
+         * attach the remaining portion directly
+         * because it is already sorted.
+         */
+        if (node1 != null) {
+            mergedTail.bottom = node1;
+            mergedTail = mergedTail.bottom;
         }
 
-        // Attach any remaining nodes from list 2
-        if (currentNode2 != null) {
-            merged.append(currentNode2);
+        if (node2 != null) {
+            mergedTail.bottom = node2;
+            mergedTail = mergedTail.bottom;
         }
 
-        return merged.head; // Return head of the final merged flattened list
+        // The merged list starts after the dummy node.
+        return mergedHead.bottom;
     }
 }
