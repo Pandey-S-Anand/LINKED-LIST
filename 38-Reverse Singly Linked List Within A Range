@@ -13,74 +13,224 @@
 
 class Solution {
     public ListNode reverseBetween(ListNode head, int left, int right) {
-        // Edge case: No reversal needed if left == right
+        // If both positions are the same, no reversal is needed
+        if (left == right) { // constraint: 1 <= left <= right <= n
+            return head;
+        }
+
+        // Locate the node at the right boundary
+        ListNode rightNode = getNodeAt(head, right);
+
+        // Store the node immediately after the right boundary
+        ListNode rightNextNode = rightNode.next;
+
+        // Temporarily cut the list at the right boundary . This isolates the segment [1 ... right]
+        rightNode.next = null;
+
+        /**
+         * Special case: reversal starts from the head of the list.
+         *
+         * Segment before reversal:
+         * [1 ... right]
+         *
+         * After reversal:
+         * [right ... 1]
+         *
+         * - rightNode becomes the new head of this segment
+         * - the original head becomes the tail
+         */
+        if (left == 1) {
+            // Reverse the segment [1 ... right]
+            reverse(head);
+
+            // Connect the reversed segment to the remaining list on the right
+            head.next = rightNextNode;
+
+            // rightNode becomes the new head after reversal
+            return rightNode;
+        }
+
+        // Find the node just before the left boundary
+        ListNode leftPrevNode = getNodeAt(head, left - 1);
+
+        // First node of the segment to be reversed
+        ListNode leftNode = leftPrevNode.next;
+
+        /**
+         * Temporarily cut the list before the segment.
+         *
+         * Now the list is divided into two independent parts:
+         *
+         * [1 ... leftPrev]    [left ... right]
+         */
+        leftPrevNode.next = null;
+
+        // Reverse the isolated segment
+        reverse(leftNode);
+
+        /**
+         * After reversal:
+         *
+         * rightNode -> ... -> leftNode
+         *
+         * - rightNode becomes the head of the reversed segment
+         * - leftNode becomes the tail of the reversed segment
+         */
+
+        // Connect the left portion of the list with the reversed segment
+        leftPrevNode.next = rightNode;
+
+        // Connect the tail of the reversed segment with the remaining right portion
+        leftNode.next = rightNextNode;
+
+        return head;
+    }
+
+    //Returns the node located at the given 1-based position.
+    private ListNode getNodeAt(ListNode head, int position) {
+        ListNode node = head;
+
+        // Traverse until the required position is reached
+        while (position > 1) {
+            node = node.next;
+            position--;
+        }
+
+        return node;
+    }
+
+    private void reverse(ListNode head) {
+        // If the list contains only one node, no reversal is needed
+        if (head.next == null) {
+            return;
+        }
+
+        ListNode prev = null;
+        ListNode node = head;
+
+        while (node != null) {
+            ListNode next = node.next;
+            node.next = prev;
+            prev = node;
+            node = next;
+        }
+    }
+}
+
+
+//Better Approach
+
+class Solution {
+    /**
+    * Improvement over the previous brute-force version:
+    *
+    * Previously we called `getNodeAt()` twice:
+    *    1) to get the node at (right)
+    *    2) to get the node at (left - 1)
+    *
+    * That meant two separate traversals of the list.
+    *
+    * In this improved version, we retrieve both required nodes
+    * (`leftPrevNode` and `rightNode`) in a single traversal using
+    * the helper method `getNodesAt(...)`.
+    *
+    * So the improvement is mainly in reducing duplicated work
+    * and making the boundary node retrieval more modular.
+    */
+    public ListNode reverseBetween(ListNode head, int left, int right) {
         if (left == right) {
             return head;
         }
 
-        // Find key boundary nodes: 
-        // 1. Node before the left position (leftNodePrev)
-        // 2. Node at the left position (leftNode)
-        // 3. Node at the right position (rightNode)
-        // 4. Node after the right position (rightNodeNext)
-        ListNode[] nodeInfo = findBoundaryNodes(head, left, right);
-        ListNode leftNodePrev = nodeInfo[0];
-        ListNode leftNode = nodeInfo[1];
-        ListNode rightNode = nodeInfo[2];
-        ListNode rightNodeNext = rightNode.next;
+        ListNode[] nodeInfo = getNodesAt(head, left - 1, right);
 
-        if (leftNodePrev == null) {
-            // Case: Sublist to be reversed starts at the head (i.e., left == 1)
-            rightNode.next = null; // Temporarily break the list
-            reverse(leftNode); // Reverse sublist from left to right
-            leftNode.next = rightNodeNext; // Reconnect the tail of reversed part to rightNodeNext
-            return rightNode; // rightNode becomes new head after reversal
+        ListNode rightNode = nodeInfo[1];
+        ListNode rightNextNode = rightNode.next;
+        rightNode.next = null;
+
+        if (left == 1) {
+            reverse(head);
+
+            head.next = rightNextNode;
+
+            return rightNode;
         }
 
-        // Case: Sublist starts somewhere after head
-        leftNodePrev.next = null; // Temporarily break the list before leftNode
-        rightNode.next = null; // Temporarily break the list after rightNode
+        ListNode leftPrevNode = nodeInfo[0];
+        ListNode leftNode = leftPrevNode.next;
 
-        reverse(leftNode); // Reverse the sublist from left to right
+        leftPrevNode.next = null;
 
-        // Reconnect:
-        leftNodePrev.next = rightNode; // Connect node before reversal to new head of reversed sublist
-        leftNode.next = rightNodeNext; // Connect tail of reversed sublist to remaining list
+        reverse(leftNode);
 
-        return head; // Head remains unchanged in this case
+        leftPrevNode.next = rightNode;
+        leftNode.next = rightNextNode;
+
+        return head;
+    }
+
+    private ListNode[] getNodesAt(ListNode head, int position1, int position2) {
+        ListNode node = head;
+        ListNode leftPrevNode = null;
+        ListNode rightNode = null;
+        int nodeCount = 1;
+
+        while (node != null) {
+            // Capture the node just before the left boundary
+            if (nodeCount == position1) {
+                leftPrevNode = node;
+            } else if (nodeCount == position2) { // Capture the node at the right boundary
+                rightNode = node;
+            }
+
+            /**
+             * Early termination condition:
+             *
+             * We stop traversal as soon as the required nodes are found.
+             *
+             * Two possible scenarios:
+             *
+             * 1) left > 1
+             *    We need both:
+             *      - leftPrevNode  (node at position left - 1)
+             *      - rightNode     (node at position right)
+             *
+             *    Once both are found, further traversal is unnecessary.
+             *
+             * 2) left == 1
+             *    In this case position1 = left - 1 = 0, which means
+             *    there is no node before the left boundary.
+             *
+             *    So leftPrevNode will never exist and the only node
+             *    we actually need is rightNode.
+             *
+             *    Therefore we break as soon as rightNode is found.
+             */
+            if ((leftPrevNode != null && rightNode != null) || (position1 == 0 && rightNode != null)) {
+                break;
+            }
+
+            nodeCount++;
+            node = node.next;
+        }
+
+        return new ListNode[] { leftPrevNode, rightNode };
     }
 
     private void reverse(ListNode head) {
-        ListNode currentNode = head;
-        ListNode prevNode = null;
-
-        while (currentNode != null) {
-            ListNode nextNode = currentNode.next;
-            currentNode.next = prevNode;
-            prevNode = currentNode;
-            currentNode = nextNode;
-        }
-    }
-
-    private ListNode[] findBoundaryNodes(ListNode head, int left, int right) {
-        ListNode leftNodePrev = null;
-        ListNode leftNode = null;
-        ListNode currentNode = head;
-
-        for (int count = 1; count < right; count++) {
-            if (count == left - 1) {
-                leftNodePrev = currentNode; // Save node before the left node
-            }
-
-            if (count == left) {
-                leftNode = currentNode; // Save left node
-            }
-
-            currentNode = currentNode.next; // Move forward
+        if (head.next == null) {
+            return;
         }
 
-        // currentNode is now at position 'right'
-        return new ListNode[] { leftNodePrev, leftNode, currentNode };
+        ListNode prev = null;
+        ListNode node = head;
+
+        while (node != null) {
+            ListNode next = node.next;
+            node.next = prev;
+            prev = node;
+            node = next;
+        }
     }
 }
 
@@ -88,73 +238,98 @@ class Solution {
 //Optimal approach
 
 class Solution {
+    /**   
+     * Improvement over the previous version:
+     *
+     * In the earlier approach we first traversed the list to locate the
+     * `right` node and only after that performed a separate reversal
+     * of the segment [left ... right].
+     *
+     * That meant the nodes inside the segment were effectively traversed twice:
+     *   1) once while searching for the `right` boundary
+     *   2) again during the reversal step
+     *
+     * In this improved version we avoid that extra traversal.
+     *
+     * Once we reach the node at position `left`, we start reversing immediately
+     * and continue the reversal exactly `(right - left + 1)` times.
+     *
+     * This means:
+     *   - we do not explicitly locate the `right` node beforehand
+     *   - we reverse the segment while traversing it
+     *
+     * So the segment [left ... right] is visited only once during reversal,
+     * making the implementation slightly more efficient and simpler.
+     */
     public ListNode reverseBetween(ListNode head, int left, int right) {
-        // Edge case: No reversal needed if left == right
+        // If both positions are the same, nothing needs to be reversed
         if (left == right) {
             return head;
         }
 
-        // Step 1: Find the node at 'left' and its previous node (if any)
-        ListNode[] nodes = findLeftNodeAndPrecedingNode(head, left);
-        ListNode leftNodePrev = nodes[0]; // Node just before position 'left' (can be null if left == 1)
-        ListNode leftNode = nodes[1]; // Node at position 'left' which becomes the tail of the reversed sublist
+        // Get the node just before the left boundary
+        ListNode leftPrevNode = getNodeAt(head, left - 1);
 
-        // Step 2: If there's a node before 'left', temporarily disconnect it
-        // This helps isolate the reversal section
-        if (leftNodePrev != null) {
-            leftNodePrev.next = null;
+        // Determine the first node of the segment to be reversed
+        ListNode leftNode = leftPrevNode == null ? head : leftPrevNode.next;
+
+        // Start reversing from the left boundary
+        ListNode node = leftNode;
+        ListNode prev = null;
+
+        //Reverse exactly (right - left + 1) nodes.
+        while ((right - left) >= 0) {
+            ListNode next = node.next;
+
+            node.next = prev; // reverse pointer
+
+            prev = node; // move prev forward
+            node = next; // move traversal forward
+
+            left++;
         }
 
-        /*
-         * Step 2: Reverse the sublist from 'left' to 'right'.
-         * This returns:
-         *  - newHead: the new head of the reversed sublist (was originally the 'right' node)
-         *  - rightNext: the node immediately after the 'right' node
+        /**
+         * After the loop:
+         *
+         * prev -> points to the node originally at position `right`
+         *         (head of the reversed segment)
+         *
+         * node -> points to the node immediately after the reversed segment i.e rightNext
+         *
+         * leftNode -> now becomes the tail of the reversed segment
          */
-        ListNode[] nodeInfo = reverseRange(leftNode, left, right);
-        ListNode newHead = nodeInfo[0]; // New head of reversed segment
-        ListNode rightNext = nodeInfo[1]; // Node after the 'right' position
 
-        // Step 4: Reconnect reversed segment back to the original list
-        if (leftNodePrev != null) {
-            // Connect the node before 'left' to the new head of the reversed segment
-            leftNodePrev.next = newHead;
+        // Connect the tail of the reversed segment to the remaining right portion
+        leftNode.next = node;
+
+        // If reversal started from the head of the list
+        if (leftPrevNode == null) {
+            return prev;
         }
 
-        // Connect the tail of the reversed sublist (original 'leftNode') to the node after 'right'
-        leftNode.next = rightNext;
+        // Connect the left portion with the head of the reversed segment
+        leftPrevNode.next = prev;
 
-        // Step 5: Return the new head
-        // If reversal began at head (i.e left == 1), the new head is the newHead  Else, return the original head of the linked list
-        return (leftNodePrev == null) ? newHead : head;
+        return head;
     }
 
-    private ListNode[] findLeftNodeAndPrecedingNode(ListNode head, int left) {
-        ListNode currentNode = head;
-        ListNode prevNode = null;
-
-        for (int count = 1; count < left; count++) {
-            prevNode = currentNode;
-            currentNode = currentNode.next;
+    /**
+     * Returns the node located at the given 1-based position.
+     * If position < 1, returns null.
+     */
+    private ListNode getNodeAt(ListNode head, int position) {
+        if (position < 1) {
+            return null;
         }
 
-        return new ListNode[] { prevNode, currentNode };
-    }
+        ListNode node = head;
 
-    private ListNode[] reverseRange(ListNode leftNode, int left, int right) {
-        ListNode prevNode = null;
-        ListNode currentNode = leftNode;
-
-        for (int count = left; count <= right; count++) {
-            ListNode nextNode = currentNode.next;
-            currentNode.next = prevNode;
-            prevNode = currentNode;
-            currentNode = nextNode;
+        while (position > 1) {
+            node = node.next;
+            position--;
         }
 
-        // After loop:
-        // prevNode = new head of reversed sublist (was tail in the original sublist)
-        // currentNode = node after the 'right' position
-        return new ListNode[] { prevNode, currentNode };
+        return node;
     }
 }
