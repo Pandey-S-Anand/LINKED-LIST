@@ -9,101 +9,29 @@
  * }
  */
 
-//Bruteforce approach
-
 class Solution {
     public void reorderList(ListNode head) {
-        // If the list has only one node, no reordering is required
+        // If the list contains only one node, reordering is unnecessary
         if (head.next == null) {
             return;
         }
 
-        // Step 1: Collect all node values in a list
-        List<Integer> nodeValues = collectValues(head);
-
-        // Step 2: Rearrange the list values in the required reorder pattern
-        List<Integer> rearrangedNodeValues = rearrange(nodeValues);
-
-        // Step 3: Reassign the rearranged values back into the original list nodes
-        assignValues(head, rearrangedNodeValues);
-    }
-
-    private List<Integer> collectValues(ListNode head) {
-        List<Integer> nodeValues = new ArrayList<>();
-        ListNode currentNode = head;
-
-        while (currentNode != null) {
-            nodeValues.add(currentNode.val); // Store current node value
-            currentNode = currentNode.next; // Move to next node
-        }
-
-        return nodeValues;
-    }
-
-    private List<Integer> rearrange(List<Integer> arr) {
-        List<Integer> rearrangedArray = new ArrayList<>();
-        int start = 0, end = arr.size() - 1;
-
-        while (start <= end) {
-            rearrangedArray.add(arr.get(start)); // Add from front
-            if (start != end) {
-                rearrangedArray.add(arr.get(end)); // Add from end
-            }
-            start++;
-            end--;
-        }
-
-        return rearrangedArray;
-    }
-
-    private void assignValues(ListNode head, List<Integer> values) {
-        ListNode current = head;
-
-        for (int value : values) {
-            current.val = value; // Overwrite node value
-            current = current.next; // Move to next node
-        }
-    }
-}
-
-
-
-// Optimal approach
-
-class Solution {
-    //Helper class to maintain the head and tail of the resulting list during the reordering phase.
-    private static class NodePair {
-        private ListNode head;
-        private ListNode tail;
-
-        public void append(ListNode node) {
-            if (head == null) {
-                head = tail = node;
-            } else {
-                tail.next = node;
-                tail = node;
-            }
-        }
-    }
-
-    public void reorderList(ListNode head) {
-        // Step 1: Find the middle node of the list
+        // Split the list into two halves. The method returns the head of the second half
         ListNode middle = findMiddle(head);
 
-        // Step 2: Reverse the second half of the list
-        ListNode secondHalfHead = middle.next;
-        middle.next = null; // Break the list into two parts
+        // Reverse the second half. This allows us to pick nodes from the end easily
+        ListNode tail = reverse(middle);
 
-        ListNode reversedSecondHalf = reverse(secondHalfHead);
-
-        // Step 3: Merge two halves alternately
-        rearrange(head, reversedSecondHalf);
+        //Merge the first half and reversed second half alternately
+        rearrange(head, tail);
     }
 
     private ListNode findMiddle(ListNode head) {
-        ListNode slowPrev = null;
         ListNode slow = head;
         ListNode fast = head;
+
+        // This pointer will track the node before slow so we can break the list into two halves
+        ListNode slowPrev = null;
 
         while (fast != null && fast.next != null) {
             slowPrev = slow;
@@ -112,45 +40,103 @@ class Solution {
         }
 
         /*
-         * If fast != null, the list has an odd number of nodes,
-         * and 'slow' is the exact middle node.
-         * If fast == null, the list has an even number of nodes,
-         * and 'slowPrev' is the node just before the middle.
+         * At this point:
+         * slow -> start of second half
+         * slowPrev -> last node of first half
+         *
+         * Break the list into two independent lists
          */
-        return fast != null ? slow : slowPrev;
+        slowPrev.next = null;
+
+        return slow;
     }
 
     private ListNode reverse(ListNode head) {
-        ListNode prevNode = null;
-        ListNode currentNode = head;
-
-        while (currentNode != null) {
-            ListNode nextNode = currentNode.next;
-            currentNode.next = prevNode;
-            prevNode = currentNode;
-            currentNode = nextNode;
+        if (head.next == null) {
+            return head;
         }
 
-        return prevNode;
+        ListNode node = head;
+        ListNode prev = null;
+
+        while (node != null) {
+            ListNode next = node.next;
+            node.next = prev;
+            prev = node;
+            node = next;
+        }
+
+        // prev becomes the new head of the reversed list
+        return prev;
     }
 
+    /*
+     * After splitting and reversing:
+     *
+     * Case 1: Even length list
+     *
+     * Example:
+     * 1 -> 2 -> 3 -> 4 -> 5 -> 6
+     *
+     * left half  = 1 -> 2 -> 3
+     * right half = 4 -> 5 -> 6
+     *
+     * reversed right = 6 -> 5 -> 4
+     *
+     * merge result:
+     * 1 -> 6 -> 2 -> 5 -> 3 -> 4
+     *
+     *
+     * Case 2: Odd length list
+     *
+     * Example:
+     * 1 -> 2 -> 3 -> 4 -> 5
+     *
+     * left half  = 1 -> 2
+     * right half = 3 -> 4 -> 5
+     *
+     * reversed right = 5 -> 4 -> 3
+     *
+     * merge result:
+     * 1 -> 5 -> 2 -> 4 -> 3
+     *
+     * Notice:
+     * The right half contains one extra node.
+     *
+     * That node should remain at the end of the final list.
+     */
     private void rearrange(ListNode head1, ListNode head2) {
-        NodePair rearrangedList = new NodePair();
-        ListNode currentNode1 = head1;
-        ListNode currentNode2 = head2;
+        // node1 traverses the first half
+        ListNode node1 = head1;
+        // node2 traverses the reversed second half
+        ListNode node2 = head2;
 
-        // Alternately append nodes from both halves
-        while (currentNode1 != null && currentNode2 != null) {
-            rearrangedList.append(currentNode1);
-            currentNode1 = currentNode1.next;
+        while (node1 != null) {
+            // Save next pointers before modifying links
+            ListNode next1 = node1.next;
+            ListNode next2 = node2.next;
 
-            rearrangedList.append(currentNode2);
-            currentNode2 = currentNode2.next;
-        }
+            // Insert node from second half after node1
+            node1.next = node2;
 
-        // In case of odd-sized list, first half will have one extra node
-        if (currentNode1 != null) {
-            rearrangedList.append(currentNode1);
+            /*
+             * For odd length lists,
+             * the right half has one extra node.
+             *
+             * When next1 becomes null,
+             * we must avoid connecting node2.next to next1
+             * because next1 is null.
+             *
+             * This ensures the last node of the right half
+             * remains correctly placed at the end.
+             */
+            if (next1 != null) {
+                node2.next = next1;
+            }
+
+            // Move both pointers forward
+            node1 = next1;
+            node2 = next2;
         }
     }
 }
