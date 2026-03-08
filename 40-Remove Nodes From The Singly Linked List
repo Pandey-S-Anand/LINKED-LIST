@@ -13,121 +13,53 @@
 //Bruteforce approach
  
 class Solution {
-    //Helper class to maintain head and tail of a newly constructed list.
-    private static class NodePair {
-        private ListNode head;
-        private ListNode tail;
-
-        public void append(ListNode node) {
-            if (head == null) {
-                head = tail = node;
-            } else {
-                tail.next = node;
-                tail = node;
-            }
-        }
-    }
-
     public ListNode removeNodes(ListNode head) {
-        ListNode currentNode = head;
-        NodePair filteredList = new NodePair();
+        ListNode node = head;
 
-        // Traverse the list and append only those nodes that don't have a greater node to the right
-        while (currentNode != null) {
-            if (!hasGreaterOnRight(currentNode)) {
-                filteredList.append(currentNode);
+        ListNode resultHead = new ListNode(-1);
+        ListNode resultTail = resultHead;
+
+        // Traverse the list
+        while (node != null) {
+            ListNode next = node.next;
+
+            /**
+             * If no greater node exists on the right side,
+             * keep this node in the result list.
+             */
+            if (!hasGreaterOnRight(node)) {
+                resultTail.next = node;
+                resultTail = resultTail.next;
+                // Disconnect node from original list to avoid unwanted links
+                node.next = null;
             }
-            currentNode = currentNode.next;
+
+            node = next;
         }
 
-        filteredList.tail.next = null;
-
-        return filteredList.head;
+        // Return the head of the filtered list
+        return resultHead.next;
     }
 
-    private boolean hasGreaterOnRight(ListNode node) {
-        ListNode currentNode = node.next;
+    /**
+     * Checks whether there exists a node with a greater value
+     * anywhere to the right of the given node.
+     */
+    private boolean hasGreaterOnRight(ListNode head) {
+        ListNode node = head.next;
 
-        // Scan the rest of the list to check for a larger value
-        while (currentNode != null) {
-            if (currentNode.val > node.val) {
+        // Scan the remaining list
+        while (node != null) {
+            // If a greater value is found, this node must be removed
+            if (node.val > head.val) {
                 return true;
             }
-            currentNode = currentNode.next;
+
+            node = node.next;
         }
 
+        // No greater value exists on the right
         return false;
-    }
-}
-
-
-//Better approach
-
-class Solution {
-    private static class NodePair {
-        private ListNode head;
-        private ListNode tail;
-
-        public void append(ListNode node) {
-            if (head == null) {
-                head = tail = node;
-            } else {
-                tail.next = node;
-                tail = node;
-            }
-        }
-    }
-
-    public ListNode removeNodes(ListNode head) {
-        NodePair filteredList = new NodePair();
-
-        /**
-         * After reversing the singly linked list, the problem transforms into:
-         * 
-         * "Remove nodes if any node on the left is greater than the current node."
-         * 
-         * Explanation:
-         * 1. The right side of each node in the original singly linked list becomes the
-         * left side in the reversed singly linked list.
-         * 2. Instead of checking for greater values on the right, we now check for
-         * greater values on the left.
-         * 3. We keep track of the maximum value encountered so far (maxSoFar) while
-         * traversing from left to right.
-         * 4. If a node's value is less than maxSoFar, we remove it by skipping the node.
-         * 5. Finally, we reverse the singly linked list again to restore the original order.
-         */
-        ListNode newHead = reverse(head);
-        ListNode currentNode = newHead;
-        int maxSoFar = Integer.MIN_VALUE;
-
-        // Traverse the reversed list and build the filtered result
-        while (currentNode != null) {
-            if (currentNode.val >= maxSoFar) {
-                filteredList.append(currentNode);
-                maxSoFar = currentNode.val;
-            }
-            currentNode = currentNode.next;
-        }
-
-        // Disconnects any leftover links from the original list to avoid unintended references
-        filteredList.tail.next = null;
-
-        // Final reversal to restore original order
-        return reverse(filteredList.head);
-    }
-
-    private ListNode reverse(ListNode head) {
-        ListNode currentNode = head;
-        ListNode prevNode = null;
-
-        while (currentNode != null) {
-            ListNode nextNode = currentNode.next;
-            currentNode.next = prevNode;
-            prevNode = currentNode;
-            currentNode = nextNode;
-        }
-
-        return prevNode;
     }
 }
 
@@ -135,52 +67,107 @@ class Solution {
 //Optimal approach
 
 class Solution {
-    private static class NodePair {
-        private ListNode head;
-
-        public void insertAtFront(ListNode node) {
-            if (head == null) {
-                head = node;
-            } else {
-                node.next = head;
-                head = node;
-            }
-        }
-    }
-
+    /*
+     *
+     * We must remove every node that has a greater value somewhere to its RIGHT.
+     *
+     * Example:
+     * 1 -> 2 -> 13 -> 3 -> 8
+     *
+     * Node 1 has greater value (2,13,3,8) on its right → remove
+     * Node 2 has greater value (13) on its right → remove
+     * Node 13 has no greater value on right → keep
+     * Node 3 has greater value (8) on its right → remove
+     * Node 8 has no greater value on right → keep
+     *
+     * Result:
+     * 13 -> 8
+     *
+     *
+     * Key Idea:
+     *
+     * The condition requires us to check values on the RIGHT side.
+     * However, a singly linked list only allows forward traversal,
+     * so we cannot efficiently inspect nodes to the right while
+     * traversing from left to right.
+     *
+     * To solve this, we reverse the list.
+     *
+     * After reversing:
+     *
+     * 1 -> 2 -> 13 -> 3 -> 8
+     * becomes
+     * 8 -> 3 -> 13 -> 2 -> 1
+     *
+     * Now the "right side" of the original list becomes the "left side"
+     * of the reversed list.
+     *
+     * So the problem transforms into:
+     *
+     * Remove every node that has a greater value on the LEFT side.
+     *
+     * This can be solved easily by maintaining a running maximum
+     * while traversing the reversed list.
+     *
+     * If a node value is smaller than the maximum seen so far,
+     * it means there exists a greater value to its right in the
+     * original list → so we remove it.
+     *
+     * After processing, we reverse the list again to restore the
+     * original ordering direction.
+     */
     public ListNode removeNodes(ListNode head) {
-        NodePair filteredList = new NodePair();
-        ListNode newHead = reverse(head); // Step 1: Reverse the list
-        ListNode currentNode = newHead;
-        int maxSoFar = Integer.MIN_VALUE;
+        // Reverse the list so that "right side" becomes "left side"
+        ListNode tail = reverse(head);
 
-        // Step 2 & 3: Traverse reversed list, keep nodes with values >= maxSoFar
-        while (currentNode != null) {
-            ListNode nextNode = currentNode.next;
-            if (currentNode.val >= maxSoFar) {
-                // Step 4: Disconnect current node from original next to avoid dangling links
-                currentNode.next = null;
-                filteredList.insertAtFront(currentNode); // Insert at front to preserve original order
-                maxSoFar = currentNode.val;
+        ListNode node = tail;
+        ListNode prev = null;
+
+        // Track the maximum value seen so far while traversing
+        int maxSoFar = tail.val;
+
+        while (node != null) {
+            /*
+            * If the current node's value is smaller than the maximum value
+            * encountered so far while traversing the reversed list,
+            * it means that in the original list there existed a node
+            * with a greater value somewhere to its right.
+            *
+            * Therefore, this node must be removed according to the
+            * problem requirement.
+            */
+            if (node.val < maxSoFar) {
+                ListNode next = node.next;
+                prev.next = next;
+                node.next = null;
+                node = next;
+            } else {
+                // Update maxSoFar and continue traversal
+                maxSoFar = Math.max(maxSoFar, node.val);
+                prev = node;
+                node = node.next;
             }
-            currentNode = nextNode;
         }
 
-        // Step 5: Since nodes are inserted at the front, the resulting list is correctly ordered without needing another reversal.
-        return filteredList.head;
+        // Reverse the list again to restore original direction
+        return reverse(tail);
     }
 
     private ListNode reverse(ListNode head) {
-        ListNode currentNode = head;
-        ListNode prevNode = null;
-
-        while (currentNode != null) {
-            ListNode nextNode = currentNode.next;
-            currentNode.next = prevNode;
-            prevNode = currentNode;
-            currentNode = nextNode;
+        if (head.next == null) {
+            return head;
         }
 
-        return prevNode;
+        ListNode prev = null;
+        ListNode node = head;
+
+        while (node != null) {
+            ListNode next = node.next;
+            node.next = prev;
+            prev = node;
+            node = next;
+        }
+
+        return prev;
     }
 }
