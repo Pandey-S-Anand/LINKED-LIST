@@ -11,68 +11,118 @@
 
 class Solution {
     public ListNode swapPairs(ListNode head) {
-        // If the list is empty or has only one node, no swap needed
+        /*
+         * Base case:
+         * If the list is empty or contains only one node,
+         * no swapping can be performed.
+         */
         if (head == null || head.next == null) {
             return head;
         }
 
-        // After the first swap, the second node will be the new head of the list
+        /*
+         * After the first swap:
+         * Example:
+         * 1 → 2 → 3 → 4
+         *
+         * First pair becomes:
+         * 2 → 1
+         *
+         * So the second node becomes the new head.
+         */
         ListNode newHead = head.next;
 
-        // Pointer to the first node of the current pair to be swapped
+        /*
+         * pairHead  → head of the current pair
+         * pairTail  → second node of the pair (which becomes the head after swap)
+         * lastPairTail → tail of the previously processed pair, used to connect pairs together
+         */
         ListNode pairHead = head;
-
-        // Keeps track of the tail node of the previously swapped pair for linking
+        ListNode pairTail = head.next;
         ListNode lastPairTail = null;
 
-        // Iterate through the list in pairs
-        while (pairHead != null && pairHead.next != null) {
-            // The second node in the current pair
-            ListNode pairTail = pairHead.next;
-
-            // Save the start of the next pair before breaking the link
+        /*
+         * Traverse the list pair by pair.
+         * pairHead → first node of pair
+         * pairTail → second node of pair
+         */
+        while (pairTail != null) {
+            // Save the head of the next pair before breaking links.
             ListNode nextPairHead = pairTail.next;
 
-            // Break the link between the current pair and the next nodes, so that the reverse method only reverses this pair
+            /*
+             * Temporarily break the link between the current pair tail
+             * and the rest of the list so that we can swap safely.
+             */
             pairTail.next = null;
 
-            // Reverse the current pair in place
-            reverse(pairHead);
+            /*
+             * Swap the current pair.
+             *
+             * Before swap:
+             * pairHead → pairTail -> null
+             *
+             * After swap:
+             * pairTail → pairHead -> null
+             */
+            swap(pairHead);
 
-            // After reversal:
-            // pairTail is now the head of the reversed pair (was the tail before)
-            // pairHead is now the tail of the reversed pair (was the head before)
-
-            // Link the previous pair's tail to the new head of this reversed pair
+            /*
+             * After swapping:
+             *
+             * pairTail → new head of this pair
+             * pairHead → new tail of this pair
+             *
+             * Connect the previous pair with the current pair.
+             */
             if (lastPairTail != null) {
                 lastPairTail.next = pairTail;
             }
 
-            // Update lastPairTail to the current pair's tail for the next iteration
+            /*
+             * Update lastPairTail because pairHead is now
+             * the tail of the swapped pair.
+             */
             lastPairTail = pairHead;
 
-            // Move to the next pair to be processed
+            // Move to the next pair.
             pairHead = nextPairHead;
+            pairTail = nextPairHead != null ? nextPairHead.next : null;
         }
 
-        // If one node remains unpaired (when list has odd number of nodes), connect it directly to the tail of the last swapped pair
+        /*
+         * If the list has an odd number of nodes,
+         * one node will remain unswapped.
+         *
+         * Example:
+         * 1 → 2 → 3
+         *
+         * Result:
+         * 2 → 1 → 3
+         *
+         * So attach the leftover node to the last swapped pair tail.
+         */
         if (pairHead != null) {
             lastPairTail.next = pairHead;
         }
 
-        // Return the new head of the swapped list
         return newHead;
     }
 
-    private void reverse(ListNode head) {
-        ListNode currentNode = head;
-        ListNode prevNode = null;
+    private void swap(ListNode head) {
+        /*
+         * Swap two nodes:
+         *
+         * first → second -> null
+         *
+         * becomes
+         *
+         * second → first -> null
+         */
+        ListNode first = head;
+        ListNode second = head.next;
 
-        while (currentNode != null) {
-            ListNode nextNode = currentNode.next;  
-            currentNode.next = prevNode;       
-            prevNode = currentNode;           
-            currentNode = nextNode;
-        }
+        second.next = first;
+        first.next = null;
     }
 }
