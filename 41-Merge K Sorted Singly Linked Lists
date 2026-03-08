@@ -13,72 +13,66 @@
 //Bruteforce approach
 
 class Solution {
-    private static class NodePair {
-        private ListNode head;
-        private ListNode tail;
-
-        public void append(ListNode node) {
-            if (head == null) {
-                head = tail = node;
-            } else {
-                tail.next = node;
-                tail = node;
-            }
-        }
-    }
-
     public ListNode mergeKLists(ListNode[] lists) {
+        // Edge case: no lists provided
         if (lists.length == 0) {
-            return null; // No lists to merge, return null
+            return null;
         }
 
+        // Start recursive merging from index 0
         return mergeKLists(lists, 0);
     }
 
     private ListNode mergeKLists(ListNode[] lists, int index) {
-        // Base case: if at last list, return it directly
+        // Base case: last list, nothing left to merge
         if (index == lists.length - 1) {
             return lists[index];
         }
 
-        // Recursively merge the remaining lists to the right
-        ListNode mergedRemainingLists = mergeKLists(lists, index + 1);
+        // Recursively merge all lists on the right side `rightHead` represents the merged head of lists[index+1 ... end]
+        ListNode rightHead = mergeKLists(lists, index + 1);
+        ListNode rightHead = mergeKLists(lists, index + 1);
 
-        // Merge current list with the merged remaining lists
-        return merge(lists[index], mergedRemainingLists);
+        // Then merge current list with the result
+        return merge(lists[index], rightHead);
     }
 
     private ListNode merge(ListNode head1, ListNode head2) {
-        NodePair merged = new NodePair();
+        ListNode node1 = head1;
+        ListNode node2 = head2;
 
-        ListNode currentNode1 = head1;
-        ListNode currentNode2 = head2;
+        ListNode mergedHead = new ListNode(-1);
+        ListNode mergedTail = mergedHead;
 
-        // Traverse both lists and append the smaller node each time
-        while (currentNode1 != null && currentNode2 != null) {
-            int val1 = currentNode1.val;
-            int val2 = currentNode2.val;
-
-            if (val1 <= val2) {
-                merged.append(currentNode1);
-                currentNode1 = currentNode1.next;
+        // Merge nodes while both lists have elements
+        while (node1 != null && node2 != null) {
+            if (node1.val <= node2.val) {
+                ListNode next = node1.next;
+                node1.next = null;
+                mergedTail.next = node1;
+                node1 = next;
             } else {
-                merged.append(currentNode2);
-                currentNode2 = currentNode2.next;
+                ListNode next = node2.next;
+                node2.next = null;
+                mergedTail.next = node2;
+                node2 = next;
             }
+
+            // Advance merged list tail
+            mergedTail = mergedTail.next;
         }
 
-        // Append any remaining nodes from list1
-        if (currentNode1 != null) {
-            merged.append(currentNode1);
+        // Attach remaining nodes from list1 if any
+        if (node1 != null) {
+            mergedTail.next = node1;
         }
 
-        // Append any remaining nodes from list2
-        if (currentNode2 != null) {
-            merged.append(currentNode2);
+        // Attach remaining nodes from list2 if any
+        if (node2 != null) {
+            mergedTail.next = node2;
         }
 
-        return merged.head;
+        return mergedHead.next;
     }
 }
 
@@ -86,75 +80,144 @@ class Solution {
 //Optimal appraoch 
 
 class Solution {
-    private static class NodePair {
-        private ListNode head;
-        private ListNode tail;
-
-        public void append(ListNode node) {
-            if (head == null) {
-                head = tail = node;
-            } else {
-                tail.next = node;
-                tail = node;
-            }
-        }
-    }
-
+    /**
+    * Why Divide & Conquer is better than the previous recursive approach
+    * -------------------------------------------------------------------
+    *
+    * The earlier recursive solution merged lists in a chain-like manner:
+    *
+    * merge(L1, merge(L2, merge(L3, merge(L4, L5))))
+    *
+    * Which unfolds like:
+    *
+    * merge(L4, L5)
+    * merge(L3, (L4 + L5))
+    * merge(L2, (L3 + L4 + L5))
+    * merge(L1, (L2 + L3 + L4 + L5))
+    *
+    * Notice what happens here:
+    * -------------------------
+    * The merged list keeps growing at every step.
+    *
+    * As the intermediate result becomes larger, earlier nodes are repeatedly
+    * scanned in every subsequent merge.
+    *
+    * Example (assuming each list has N nodes):
+    *
+    * merge(L4, L5)        → process 2N nodes
+    * merge(L3, result)    → process 3N nodes
+    * merge(L2, result)    → process 4N nodes
+    * merge(L1, result)    → process 5N nodes
+    *
+    * So nodes from earlier lists get processed multiple times.
+    *
+    * Total work becomes roughly:
+    *
+    * N + 2N + 3N + ... + KN  ≈  O(KN)
+    *
+    *
+    * How Divide & Conquer improves this
+    * ----------------------------------
+    *
+    * Instead of merging lists sequentially, we split the array of lists
+    * into two halves and merge them recursively.
+    *
+    * Example:
+    *
+    * lists = [L1, L2, L3, L4]
+    *
+    * Step 1:
+    * merge(L1, L2)    merge(L3, L4)
+    *
+    * Step 2:
+    * merge((L1+L2), (L3+L4))
+    *
+    * This creates a balanced merge tree (similar to Merge Sort).
+    *
+    * Key observation:
+    * ----------------
+    * At each level of the merge tree, every node across all lists
+    * is processed exactly once.
+    *
+    * The height of this merge tree is:
+    *
+    * log(K)
+    *
+    * Therefore each node participates in at most log(K) merge operations.
+    *
+    *
+    * Final Complexity
+    * ----------------
+    *
+    * Let N = total number of nodes across all lists.
+    *
+    * Work per level  → O(N)
+    * Number of levels → O(log K)
+    *
+    * Total Time Complexity:
+    * O(N log K)
+    *
+    * Space Complexity:
+    * O(log K) recursion stack
+    */
     public ListNode mergeKLists(ListNode[] lists) {
         if (lists.length == 0) {
-            return null; // No lists to merge, return null
+            return null;
         }
 
         return mergeKLists(lists, 0, lists.length - 1);
     }
 
-    private ListNode mergeKLists(ListNode[] lists, int left, int right) {
-        // Base case: If there is only one singly linked list, return it
-        if (left == right) {
-            return lists[left];
+    private ListNode mergeKLists(ListNode[] lists, int low, int high) {
+        // Base case: only one list
+        if (low == high) {
+            return lists[low];
         }
 
-        // Find the middle index
-        int mid = left + (right - left) / 2;
+        // Split the list range into two halves to keep merges balanced
+        int mid = low + (high - low) / 2;
 
-        // Recursively merge the left and right halves
-        ListNode leftPartHead = mergeKLists(lists, left, mid);
-        ListNode rightPartHead = mergeKLists(lists, mid + 1, right);
+        // Recursively merge left half
+        ListNode leftHead = mergeKLists(lists, low, mid);
 
-        // Merge the two sorted singly linked lists and return the merged list head
-        return merge(leftPartHead, rightPartHead);
+        // Recursively merge right half
+        ListNode rightHead = mergeKLists(lists, mid + 1, high);
+
+        // Merge the two sorted halves
+        return merge(leftHead, rightHead);
     }
 
     private ListNode merge(ListNode head1, ListNode head2) {
-        NodePair merged = new NodePair();
+        ListNode node1 = head1;
+        ListNode node2 = head2;
 
-        ListNode currentNode1 = head1;
-        ListNode currentNode2 = head2;
+        ListNode mergedHead = new ListNode(-1);
+        ListNode mergedTail = mergedHead;
 
-        // Traverse both lists and append the smaller node each time
-        while (currentNode1 != null && currentNode2 != null) {
-            int val1 = currentNode1.val;
-            int val2 = currentNode2.val;
-
-            if (val1 <= val2) {
-                merged.append(currentNode1);
-                currentNode1 = currentNode1.next;
+        while (node1 != null && node2 != null) {
+            if (node1.val <= node2.val) {
+                ListNode next = node1.next;
+                node1.next = null;
+                mergedTail.next = node1;
+                node1 = next;
             } else {
-                merged.append(currentNode2);
-                currentNode2 = currentNode2.next;
+                ListNode next = node2.next;
+                node2.next = null;
+                mergedTail.next = node2;
+                node2 = next;
             }
+
+            mergedTail = mergedTail.next;
         }
 
-        // Append any remaining nodes from list1
-        if (currentNode1 != null) {
-            merged.append(currentNode1);
+        if (node1 != null) {
+            mergedTail.next = node1;
         }
 
-        // Append any remaining nodes from list2
-        if (currentNode2 != null) {
-            merged.append(currentNode2);
+        if (node2 != null) {
+            mergedTail.next = node2;
         }
 
-        return merged.head;
+        return mergedHead.next;
     }
 }
