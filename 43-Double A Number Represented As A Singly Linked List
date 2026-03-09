@@ -12,118 +12,103 @@
 //Bruteforce approoach
 
 class Solution {
-    // Helper inner class to build the resulting linked list from front efficiently
-    private static class SinglyLinkedList {
-        private ListNode head;
-        private ListNode tail;
-
-        private void insertAtFront(int num) {
-            ListNode node = new ListNode(num);
-            if (head == null) {
-                head = tail = node;
-            } else {
-                node.next = head;
-                head = node;
-            }
-        }
-    }
-
+    /**
+     * Problem:
+     * Given a linked list representing a non-negative integer,
+     * double the number and return the resulting linked list.
+     *
+     * Example:
+     * 1 -> 8 -> 9
+     * represents 189
+     *
+     * After doubling:
+     * 378 -> 3 -> 7 -> 8
+     *
+     *
+     * Core Idea:
+     * ----------
+     * In arithmetic operations like addition or multiplication,
+     * we must start processing from the least significant digit
+     * (the rightmost digit).
+     *
+     * However, a singly linked list can only be traversed in the
+     * forward direction.
+     *
+     * Example:
+     * 1 -> 8 -> 9
+     *
+     * We need to process:
+     * 9 -> 8 -> 1
+     *
+     * Since we cannot traverse backwards in a singly linked list,
+     * we reverse the list first so that the least significant digit
+     * becomes the head.
+     *
+     * After reversing:
+     *
+     * 9 -> 8 -> 1
+     *
+     * Now we can process digits from left to right while maintaining carry,
+     * exactly like manual arithmetic.
+     *
+     * After computing the doubled digits, we reverse the result again
+     * to restore the original forward order.
+     *
+     */
     public ListNode doubleIt(ListNode head) {
-        // Reverse the input list to process digits from least significant to most significant
-        ListNode currentNode = reverse(head);
+        // Special case: if the number is 0, doubling still results in 0
+        if (head.val == 0) {
+            return head;
+        }
 
-        // The list to hold the sum (doubled number)
-        SinglyLinkedList sum = new SinglyLinkedList();
+        // Reverse the list so we can process digits from least significant
+        ListNode node = reverse(head);
 
+        ListNode doubledNumberHead = new ListNode(-1);
+        ListNode doubledNumberTail = doubledNumberHead;
+
+        // Carry generated during doubling
         int carry = 0;
-        int base = 0;
 
-        // Traverse the reversed list digit by digit
-        while (currentNode != null) {
-            // Double current digit and add carry
-            int digitSum = (2 * currentNode.val) + carry;
+        /*
+         * Traverse the reversed list and double each digit.
+         * Continue while:
+         *  - there are digits left to process
+         *  - OR there is still a carry remaining
+         */
+        while (node != null || carry == 1) {
+            // Double the current digit (or 0 if node is null)
+            int doubledValue = node != null ? (2 * node.val) : 0;
 
-            // Extract the single digit to store
-            base = digitSum % 10;
+            // Compute resulting digit
+            int newDigit = (doubledValue + carry) % 10;
+            // Update carry
+            carry = (doubledValue + carry) / 10;
 
-            // Update carry for next iteration 
-            carry = digitSum / 10;
-
-            // Insert the digit at the front of the result list
-            sum.insertAtFront(base);
+            // Append new digit to result list
+            doubledNumberTail.next = new ListNode(newDigit);
+            doubledNumberTail = doubledNumberTail.next;
 
             // Move to next digit
-            currentNode = currentNode.next;
+            node = node != null ? node.next : null;
         }
 
-        // If carry remains after the last digit, insert it at the front
-        if (carry == 1) {
-            sum.insertAtFront(carry);
-        }
-
-        // Return the head of the new list representing the doubled number
-        return sum.head;
+        // Reverse the result again to restore correct order
+        return reverse(doubledNumberHead.next);
     }
 
     private ListNode reverse(ListNode head) {
-        ListNode currentNode = head;
-        ListNode prevNode = null;
+        ListNode prev = null;
+        ListNode node = head;
 
-        while (currentNode != null) {
-            ListNode nextNode = currentNode.next;
-            currentNode.next = prevNode;
-            prevNode = currentNode;
-            currentNode = nextNode;
+        while (node != null) {
+            ListNode next = node.next;
+            node.next = prev;
+            prev = node;
+            node = next;
         }
 
-        // prevNode is the new head of reversed list
-        return prevNode;
-    }
-}
-
-
-//Better approach
-
-class Solution {
-    public ListNode doubleIt(ListNode head) {
-        // Reverse the linked list to start doubling from the least significant digit
-        ListNode newHead = reverse(head);
-
-        ListNode currentNode = newHead;
-        int base = 0, carry = 0;
-
-        // Traverse the reversed list, doubling each digit and managing carry
-        while (currentNode != null) {
-            int digitSum = (2 * currentNode.val) + carry; // Double current digit and add carry
-            base = digitSum % 10; // Extract the digit to keep
-            carry = digitSum / 10; // Calculate carry for next digit
-            currentNode.val = base; // Update current node's value with doubled digit
-            currentNode = currentNode.next; // Move to next digit/node
-        }
-
-        // After processing all digits, if there's still a carry, add a new node with value 1 at the end
-        if (carry == 1) {
-            // Note: 'head' here refers to the original list's head, which is now the tail of the reversed list.
-            head.next = new ListNode(1); // So we add the new carry node at the end of the reversed list.
-        }
-
-        // Reverse the list again to restore original digit order
-        return reverse(newHead);
-    }
-
-    private ListNode reverse(ListNode head) {
-        ListNode currentNode = head;
-        ListNode prevNode = null;
-
-        while (currentNode != null) {
-            ListNode nextNode = currentNode.next;
-            currentNode.next = prevNode;
-            prevNode = currentNode;
-            currentNode = nextNode;
-        }
-
-        // prevNode is new head after reversal
-        return prevNode;
+        return prev;
     }
 }
 
@@ -131,69 +116,63 @@ class Solution {
 //Optimal approach
 
 class Solution {
-    // Helper class to maintain head and tail references of the new list being built
-    private static class NodePair {
-        private ListNode head;
-        private ListNode tail;
-
-        // Inserts a node at the front of the list represented by this NodePair
-        private void insertAtFront(ListNode node) {
-            node.next = null; // Disconnect node from its previous next reference
-            if (head == null) {
-                // If list is empty, node becomes both head and tail
-                head = tail = node;
-            } else {
-                // Otherwise, insert node before the current head
-                node.next = head;
-                head = node;
-            }
-        }
-    }
-
+    /**
+     * Improvement over the previous approach:
+     *
+     * Previously we:
+     * 1) Reversed the input list
+     * 2) Built the result list in reversed order (least significant digit first)
+     * 3) Reversed the result again to restore correct forward order
+     *
+     * In this improved version we avoid the final reverse operation.
+     *
+     * Instead of appending new digits at the tail of the result list,
+     * we insert each newly computed digit at the front.
+     *
+     * Since digits are processed from least significant to most significant
+     * (because the input list was reversed), inserting at the front
+     * automatically constructs the result in the correct forward order.
+     *
+     * This removes one full list traversal (the final reverse),
+     * making the implementation slightly cleaner and more efficient.
+     */
     public ListNode doubleIt(ListNode head) {
-        // Reverse the input list to process from least significant digit first
-        ListNode newHead = reverse(head);
+        if (head.val == 0) {
+            return head;
+        }
 
-        NodePair sum = new NodePair(); // Will hold the resulting doubled number list
-        ListNode currentNode = newHead;
-
-        int base = 0;
+        ListNode doubledNumberHead = null;
+        ListNode node = reverse(head);
         int carry = 0;
 
-        // Traverse reversed list and double each digit with carry
-        while (currentNode != null) {
-            int digitSum = (2 * currentNode.val) + carry; // Double current digit and add carry
-            base = digitSum % 10; // Extract digit to store in node
-            carry = digitSum / 10; // Calculate carry for next iteration
+        while (node != null || carry == 1) {
+            int doubledValue = node != null ? (2 * node.val) : 0;
 
-            currentNode.val = base; // Update current node value with doubled digit
+            int newDigit = (doubledValue + carry) % 10;
+            carry = (doubledValue + carry) / 10;
 
-            ListNode nextNode = currentNode.next; // Save next node before modifying links
-            sum.insertAtFront(currentNode); // Insert the updated node at the front of the sum list
-            currentNode = nextNode; // Move to next node
+            ListNode digitNode = new ListNode(newDigit);
+
+            digitNode.next = doubledNumberHead;
+            doubledNumberHead = digitNode;
+
+            node = node != null ? node.next : null;
         }
 
-        // After processing all nodes, if carry is left, insert it at the front
-        if (carry == 1) {
-            sum.insertAtFront(new ListNode(1));
-        }
-
-        // Return head of the new doubled number list, which is in correct order
-        return sum.head;
+        return doubledNumberHead;
     }
 
     private ListNode reverse(ListNode head) {
-        ListNode currentNode = head;
-        ListNode prevNode = null;
+        ListNode prev = null;
+        ListNode node = head;
 
-        while (currentNode != null) {
-            ListNode nextNode = currentNode.next;
-            currentNode.next = prevNode;
-            prevNode = currentNode;
-            currentNode = nextNode;
+        while (node != null) {
+            ListNode next = node.next;
+            node.next = prev;
+            prev = node;
+            node = next;
         }
 
-        // prevNode is the new head of the reversed list
-        return prevNode;
+        return prev;
     }
 }
