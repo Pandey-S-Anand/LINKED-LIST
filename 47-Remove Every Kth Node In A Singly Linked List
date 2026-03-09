@@ -1,0 +1,54 @@
+class Solution {
+    Node deleteK(Node head, int k) {
+        /*
+        * Special Case:
+        * If k == 1, every node is the 1st node of a group,
+        * so all nodes must be deleted.
+        * Therefore we directly return null.
+        */
+        if (k == 1) {
+            return null;
+        }
+
+        /*
+         * Initialize nodeCount = 1 because the head node
+         * represents the first position in the linked list.
+         */
+        int nodeCount = 1;
+
+        // Pointer used for traversal
+        Node node = head;
+
+        // Pointer to track the previous node (needed for deletion)
+        Node prev = null;
+
+        while (node != null) {
+            /*
+             * If current position is a multiple of k,
+             * delete this node.
+             */
+            if (nodeCount % k == 0) {
+                // Save next node before deletion
+                Node next = node.next;
+                // Bypass the current node
+                prev.next = next;
+                // Disconnect the deleted node from the list
+                node.next = null;
+                // Move to the next node
+                node = next;
+            } else {
+                /*
+                * Otherwise simply move forward in the list
+                * while updating the previous pointer.
+                */
+                prev = node;
+                node = node.next;
+            }
+
+            // Increment node position counter
+            nodeCount++;
+        }
+
+        return head;
+    }
+}
