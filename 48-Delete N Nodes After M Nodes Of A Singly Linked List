@@ -1,33 +1,58 @@
 class Solution {
+    /**
+     * Important Constraint:
+     * ---------------------
+     * The problem guarantees that M > 0.
+     *
+     * This means the first node (head) will always be part of the
+     * kept segment, so the head of the list will never be deleted.
+     * Therefore the head reference always remains unchanged.
+     *
+     */
     static void linkdelete(Node head, int n, int m) {
-        Node currentNode = head;       // Pointer to traverse the list
-        Node lastRetainedNode = null;  // Pointer to keep track of last node before deletion
+        Node node = head;
 
-        while (currentNode != null) {
+        // Stores the last node that we decided to keep
+        Node lastKeptNode = null;
 
-            // Step 1: Skip 'm' nodes to retain them
-            for (int count = 1; count <= m && currentNode != null; count++) {
-                lastRetainedNode = currentNode;     // Update the last retained node
-                currentNode = currentNode.next;     // Move to next node
+        while (node != null) {
+            /**
+             * Keep the next M nodes
+             *
+             * Move forward M nodes and keep track of the last node
+             * that should remain in the list.
+             */
+            for (int count = 1; (count <= m && node != null); count++) {
+                lastKeptNode = node;
+                node = node.next;
             }
 
-            // If we've reached the end after skipping m nodes, no further deletions can be done
-            if (currentNode == null) {
-                return;
+            // If we reach the end while keeping nodes, nothing more to delete
+            if (node == null) {
+                break;
             }
 
-            // Step 2: Skip 'n' nodes to delete them (logically by unlinking)
-            Node lastDeletedNode = null;  // Will point to the last node being deleted
-            for (int count = 1; count <= n && currentNode != null; count++) {
-                lastDeletedNode = currentNode;
-                currentNode = currentNode.next;     // Move ahead, logically deleting the node
+            /**
+             * Delete the next N nodes
+             *
+             * We move forward N nodes while remembering the last node
+             * that belongs to the deletion segment.
+             */
+            Node lastDeletedNode = null;
+
+            for (int count = 1; (count <= n && node != null); count++) {
+                lastDeletedNode = node;
+                node = node.next;
             }
 
-            // Step 3: Explicitly disconnect the last deleted node from the list (helps GC)
+            // Disconnect the deleted segment from the list.
             lastDeletedNode.next = null;
 
-            // Step 4: Connect last retained node to the node after deleted block
-            lastRetainedNode.next = currentNode;
+            /**
+             * Connect the last kept node to the next valid node
+             * that appears after the deleted segment.
+             */
+            lastKeptNode.next = node;
         }
     }
 }
