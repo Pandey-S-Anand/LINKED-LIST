@@ -1,56 +1,44 @@
 /**
  * Definition for singly-linked list.
  * public class ListNode {
- * int val;
- * ListNode next;
- * ListNode() {}
- * ListNode(int val) { this.val = val; }
- * ListNode(int val, ListNode next) { this.val = val; this.next = next; }
+ *     int val;
+ *     ListNode next;
+ *     ListNode() {}
+ *     ListNode(int val) { this.val = val; }
+ *     ListNode(int val, ListNode next) { this.val = val; this.next = next; }
  * }
  */
-
 class Solution {
-    // Helper class to manage both head and tail pointers of a newly built list
-    private static class NodePair {
-        private ListNode head;
-        private ListNode tail;
-
-        // Append a node to the end of the list maintained by this NodePair
-        private void append(ListNode node) {
-            if (head == null) {
-                // If list is empty, initialize both head and tail to the node
-                head = tail = node;
-            } else {
-                // Attach new node at the end and move tail pointer forward
-                tail.next = node;
-                tail = node;
-            }
-        }
-    }
-
     public ListNode modifiedList(int[] arr, ListNode head) {
-        NodePair list = new NodePair(); // This will store the filtered result list
+        // Convert array values into a HashSet for fast lookup
+        Set<Integer> valuesToRemove = Arrays.stream(arr).boxed().collect(Collectors.toSet());
 
-        // Convert array to Set for O(1) lookup time for each element
-        Set<Integer> set = Arrays.stream(arr).boxed().collect(Collectors.toSet());
+        ListNode node = head;
+        ListNode filteredListHead = new ListNode(-1);
+        ListNode filteredListTail = filteredListHead;
 
-        ListNode currentNode = head;
+        // Traverse the original list
+        while (node != null) {
+            // Save the next node before modifying links
+            ListNode next = node.next;
 
-        // Traverse original list
-        while (currentNode != null) {
-            // If current node's value is NOT in the set, append it to result list
-            if (!set.contains(currentNode.val)) {
-                list.append(currentNode);
+            // Detach current node from the original list
+            node.next = null;
+
+            /*
+             * If the current node's value is NOT present in the removal set,
+             * keep it by appending it to the filtered list.
+             */
+            if (!valuesToRemove.contains(node.val)) {
+                filteredListTail.next = node;
+                filteredListTail = filteredListTail.next;
             }
-            currentNode = currentNode.next; // Move to next node
+
+            // Move to the next node in the original list
+            node = next;
         }
 
-        // Important: If any nodes were added, cut off any leftover links
-        if (list.tail != null) {
-            list.tail.next = null;
-        }
-
-        // Return head of the filtered list, or null if all nodes were removed
-        return list.head;
+        // Return the head of the filtered list
+        return filteredListHead.next;
     }
 }
