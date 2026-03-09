@@ -10,43 +10,75 @@
  */
 
 class Solution {
-    private static class NodeBuilder {
-        private ListNode head;
-        private ListNode tail;
-
-        // Appends a new node at the end of the list
-        private void append(ListNode node) {
-            if (head == null) {
-                head = tail = node;
-            } else {
-                tail.next = node;
-                tail = node;
-            }
-        }
-    }
-
+    /**
+     * Problem:
+     * The linked list starts and ends with 0.
+     * Between every two consecutive 0s there are values that must be summed.
+     *
+     * Example:
+     * 0 -> 3 -> 1 -> 0 -> 4 -> 5 -> 2 -> 0
+     *
+     * Segments:
+     * (3 + 1) = 4
+     * (4 + 5 + 2) = 11
+     *
+     * Result:
+     * 4 -> 11
+     *
+     *
+     * Approach:
+     * Traverse the list while accumulating the sum of nodes between two zeros.
+     *
+     * When we encounter a zero:
+     * - it means the current segment has ended
+     * - we create a new node containing the computed segment sum
+     * - append it to the result list
+     * - reset the sum for the next segment
+     *
+     */
     public ListNode mergeNodes(ListNode head) {
-        NodeBuilder list = new NodeBuilder();
+        ListNode mergedHead = new ListNode(-1);
+        ListNode mergedTail = mergedHead;
 
-        // Start processing from the node after the first 0, as per the problem guarantee that the first and last nodes are always 0
-        ListNode currentNode = head.next;
+        /*
+         * Start traversal from the second node.
+         *
+         * The first node is guaranteed to be 0 according to the problem statement,
+         * we skip it and start processing from head.next.
+         */
+        ListNode node = head.next;
 
-        while (currentNode != null) {
-            int segmentSum = 0;
+        // Stores the running sum of values between two zeros
+        int segmentSum = 0;
 
-            // Sum all values until the next 0 (end of the current segment)
-            while (currentNode.val != 0) {
-                segmentSum += currentNode.val;
-                currentNode = currentNode.next;
+        while (node != null) {
+            /*
+             * When we encounter a zero, it indicates the end of the current segment.
+             * The accumulated sum represents the merged value of that segment.
+             */
+            if (node.val == 0) {
+                // Create a new node containing the segment sum
+                ListNode newNode = new ListNode(segmentSum);
+
+                // Reset sum for the next segment
+                segmentSum = 0;
+
+                // Append the new node to the result list
+                mergedTail.next = newNode;
+                mergedTail = mergedTail.next;
+            } else {
+                /*
+                * Otherwise we are still inside a segment,
+                * so keep accumulating the sum.
+                */
+                segmentSum += node.val;
             }
 
-            // Create a new node with the segment sum and append it to the result list
-            list.append(new ListNode(segmentSum));
-
-            // Move to the node after 0 to process the next segment
-            currentNode = currentNode.next;
+            // Move to the next node in the list
+            node = node.next;
         }
 
-        return list.head;
+        // Skip dummy node and return actual result head
+        return mergedHead.next;
     }
 }
