@@ -12,58 +12,82 @@
  //Bruteforce approach
 
 class Solution {
-
     public int[] nodesBetweenCriticalPoints(ListNode head) {
-        // Step 1: Get positions of all critical points
-        List<Integer> criticalPointsPosition = getAllCriticalPoints(head);
+        // Get positions of all critical points in the linked list
+        List<Integer> criticalPointPositions = getCriticalPointPositions(head);
 
-        // If there are fewer than 2 critical points, return [-1, -1] as required
-        if (criticalPointsPosition.size() < 2) {
+        // If fewer than two critical points exist, distance cannot be computed
+        if (criticalPointPositions.size() <= 1) {
             return new int[] { -1, -1 };
         }
 
-        // Step 2: Compute max distance = distance between first and last critical point
-        int maxDistance = criticalPointsPosition.get(criticalPointsPosition.size() - 1) - criticalPointsPosition.get(0);
+        /*
+         * Since we traverse the linked list from left to right and store the
+         * positions as we encounter them, the positions in this list are
+         * naturally stored in sorted order.
+         *
+         * Therefore:
+         * - The maximum distance will always be between the first and last critical points.
+         */
+        int maxDistance = criticalPointPositions.get(criticalPointPositions.size() - 1) - criticalPointPositions.get(0);
 
-        // Step 3: Compute minimum distance — this is the smallest distance between any two adjacent critical points
+        /*
+         * Minimum distance must occur between two adjacent critical points
+         * because the list is already sorted.
+         *
+         * We simply compute the smallest difference between consecutive
+         * positions.
+         */
         int minDistance = Integer.MAX_VALUE;
-        for (int i = 0; i < criticalPointsPosition.size() - 1; i++) {
-            int distance = criticalPointsPosition.get(i + 1) - criticalPointsPosition.get(i);
+
+        for (int i = 1; i < criticalPointPositions.size(); i++) {
+            int distance = criticalPointPositions.get(i) - criticalPointPositions.get(i - 1);
             minDistance = Math.min(minDistance, distance);
         }
 
-        // Return result as [minDistance, maxDistance]
+        // Return result in required format [minDistance, maxDistance]
         return new int[] { minDistance, maxDistance };
     }
 
-    private List<Integer> getAllCriticalPoints(ListNode head) {
-        List<Integer> criticalPointsPosition = new ArrayList<>();
+    private List<Integer> getCriticalPointPositions(ListNode head) {
+        List<Integer> criticalPointPositions = new ArrayList<>();
 
-        // The first and last nodes can never be critical points because they are missing one of the neighbors
-        ListNode currentNode = head.next; // Start from the second node
-        ListNode prevNode = head;
-        int currentPosition = 1; // head is at position 1
+        /*
+         * The first and last nodes of a linked list can never be critical points
+         * because a critical point must have both a previous and a next node.
+         *
+         * Therefore we start checking from the second node and stop before the last node.
+         */
+        ListNode prev = head;
+        ListNode node = head.next;
 
-        // Traverse until the second last node
-        while (currentNode.next != null) {
-            currentPosition++; // Move to the currentNode's position
+        int position = 2; // node currently represents the 2nd node in the list
 
-            // Check if currentNode is a local maxima or minima
-            if (isCriticalPoint(currentNode.val, prevNode.val, currentNode.next.val)) {
-                criticalPointsPosition.add(currentPosition);
+        while (node.next != null) {
+            int currVal = node.val;
+            int prevVal = prev.val;
+            int nextVal = node.next.val;
+
+            /*
+             * A critical point occurs when the current node is either:
+             * 1) Local minima  -> smaller than both neighbors
+             * 2) Local maxima  -> larger than both neighbors
+             */
+            if (isLocalMinimaOrMaxima(currVal, prevVal, nextVal)) {
+                criticalPointPositions.add(position);
             }
 
-            // Move pointers forward
-            prevNode = currentNode;
-            currentNode = currentNode.next;
+            // Move traversal pointers forward
+            prev = node;
+            node = node.next;
+            position++;
         }
 
-        return criticalPointsPosition;
+        return criticalPointPositions;
     }
 
-    private boolean isCriticalPoint(int currentValue, int prevValue, int nextValue) {
-        return (currentValue > prevValue && currentValue > nextValue) ||
-                (currentValue < prevValue && currentValue < nextValue);
+    private boolean isLocalMinimaOrMaxima(int currVal, int prevVal, int nextVal) {
+        return ((currVal < prevVal && currVal < nextVal) || (currVal > prevVal && currVal > nextVal));
     }
 }
 
@@ -71,50 +95,124 @@ class Solution {
 //Optimal approach
 
 class Solution {
+    /**
+     * The problem asks us to compute:
+     *
+     * 1) Minimum distance between any two critical points
+     * 2) Maximum distance between any two critical points
+     *
+     *
+     * Key Observations:
+     * -----------------
+     * 1) The maximum distance between critical points will always be
+     *    between the FIRST and the LAST critical point encountered.
+     *
+     * 2) The minimum distance between critical points will always occur
+     *    between two ADJACENT critical points.
+     *
+     *
+     * Therefore we do NOT need to store all critical point positions.
+     *
+     * Instead we only keep track of:
+     *
+     * - firstCriticalPointPosition → position of the first critical point
+     * - prevCriticalPointPosition  → position of the previous critical point
+     *
+     * While traversing the list we:
+     *
+     * - Update minDistance using distance between current and previous critical point
+     * - Update prevCriticalPointPosition to the current position
+     *
+     *
+     * After traversal finishes:
+     *
+     * - prevCriticalPointPosition will hold the LAST critical point position
+     * - firstCriticalPointPosition will hold the FIRST critical point position
+     *
+     * Thus:
+     *
+     * maxDistance = lastCriticalPosition - firstCriticalPosition
+     *
+     *
+     * Time Complexity:
+     * O(n)
+     *
+     * Space Complexity:
+     * O(1)
+     */
+
     public int[] nodesBetweenCriticalPoints(ListNode head) {
-        // Initialize pointers to traverse the list and track positions
-        ListNode currentNode = head.next, prevNode = head;
+        // Stores the position of the first critical point encountered
+        int firstCriticalPointPosition = -1;
+        // Stores the position of the previous critical point encountered
+        int prevCriticalPointPosition = -1;
 
-        int position = 1; // Position tracker (as we skip the head initially)
-        int firstCriticalPointPosition = -1; // Stores position of the first critical point
-        int lastCriticalPointPosition = -1;  // Stores position of the most recently found critical point
-        int minDistance = Integer.MAX_VALUE; // Tracks the smallest distance between any two critical points
+        /*
+         * Start traversal from the second node.
+         * The first node cannot be a critical point because it does not
+         * have a left neighbour. 
+         */
+        ListNode prev = head;
+        ListNode node = head.next;
 
-        // Traverse from the second node to the second-last node
-        while (currentNode.next != null) {
-            position++; // Move to next position
+        // Current node is at position 2 
+        int position = 2;
 
-            // Check if current node is a critical point
-            if (isCriticalPoint(currentNode.val, prevNode.val, currentNode.next.val)) {
+        // Stores minimum distance between adjacent critical points
+        int minDistance = Integer.MAX_VALUE;
+
+        /**
+         * We stop before the last node because the last node cannot
+         * be a critical point (it does not have a right neighbor).
+         */
+        while (node.next != null) {
+            // Check if current node is a local minima or maxima.
+            if (isLocalMinimaOrMaxima(node.val, prev.val, node.next.val)) {
+                /**
+                 * If this is the first critical point we encounter,
+                 * initialize both trackers.
+                 */
                 if (firstCriticalPointPosition == -1) {
-                    // First critical point found
-                    firstCriticalPointPosition = position;
-                    lastCriticalPointPosition = position;
+                    firstCriticalPointPosition = prevCriticalPointPosition = position;
                 } else {
-                    // Compute minimum distance between current and previous critical points
-                    minDistance = Math.min(minDistance, position - lastCriticalPointPosition);
-                    lastCriticalPointPosition = position;
+                    /**
+                    * Otherwise compute distance from the previous
+                    * critical point and update minimum distance.
+                    */
+                    int distance = position - prevCriticalPointPosition;
+                    minDistance = Math.min(minDistance, distance);
+                    prevCriticalPointPosition = position;
                 }
             }
 
-            // Move both pointers forward
-            prevNode = currentNode;
-            currentNode = currentNode.next;
+            // Move traversal forward
+            position++;
+            prev = node;
+            node = node.next;
         }
 
-        // If fewer than 2 critical points were found, return [-1, -1]
-        if (lastCriticalPointPosition == firstCriticalPointPosition) {
+        /**
+         * If fewer than two critical points exist,
+         * the answer must be [-1, -1].
+         */
+        if (firstCriticalPointPosition == -1 || prevCriticalPointPosition == -1) {
             return new int[] { -1, -1 };
         }
 
-        // Maximum distance is between the first and last critical points found
-        int maxDistance = lastCriticalPointPosition - firstCriticalPointPosition;
+        /**
+         * At this point:
+         *
+         * firstCriticalPointPosition → first critical point
+         * prevCriticalPointPosition  → last critical point
+         *
+         * So maximum distance is simply their difference.
+         */
+        int maxDistance = prevCriticalPointPosition - firstCriticalPointPosition;
 
         return new int[] { minDistance, maxDistance };
     }
 
-    // Helper method to determine if a node is a critical point
-    private boolean isCriticalPoint(int currValue, int prevValue, int nextValue) {
-        return (currValue > prevValue && currValue > nextValue) || (currValue < prevValue && currValue < nextValue);
+    private boolean isLocalMinimaOrMaxima(int currVal, int prevVal, int nextVal) {
+        return ((currVal < prevVal && currVal < nextVal) || (currVal > prevVal && currVal > nextVal));
     }
 }
