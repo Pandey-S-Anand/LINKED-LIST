@@ -1,34 +1,60 @@
 class Solution {
-    public Node deleteNode(Node head, int position) {
-        Node currentNode = head;
+    public Node delPos(Node head, int position) {
+        /*
+         * Special case: deleting the head node.
+         *
+         * If position == 1, we move the head forward
+         * and remove the backward link from the new head.
+         */
+        if (position == 1) {
+            Node newHead = head.next;
 
-        // Step 1: Traverse to the node at the given position  We stop at the node to be deleted
-        while (position > 1) {
-            currentNode = currentNode.next;
+            // If the list had more than one node
+            if (newHead != null) {
+                newHead.prev = null;
+            }
+
+            return newHead;
+        }
+
+        // Find the node located at the given position.
+        Node targetNode = getNodeAt(head, position);
+
+        // Neighbor nodes of the node being deleted
+        Node prevNode = targetNode.prev;
+        Node nextNode = targetNode.next;
+
+        /*
+         * Connect the previous node to the next node,
+         * bypassing the target node.
+         */
+        prevNode.next = nextNode;
+
+        /*
+         * If the next node exists, update its prev pointer
+         * to maintain the DLL structure.
+         */
+        if (nextNode != null) {
+            nextNode.prev = prevNode;
+        }
+
+        // Fully disconnect the target node from the list.
+        targetNode.next = null;
+        targetNode.prev = null;
+
+        // Head remains unchanged for all non-head deletions
+        return head;
+    }
+
+    private Node getNodeAt(Node head, int position) {
+        Node node = head;
+
+        // Traverse until the desired position is reached
+        while (position != 1) {
+            node = node.next;
             position--;
         }
 
-        // Get the previous and next nodes of the node to be deleted
-        Node nextNode = currentNode.next;
-        Node prevNode = currentNode.prev;
-
-        // Case 1: Deleting the head node (position == 1)
-        if (prevNode == null) {
-            // Update the head to next node
-            head = nextNode;
-            
-            // If there's a node after head, update its prev to null (this check is safe even though the list size is guaranteed to be >= 2)
-            if (nextNode != null) {
-                nextNode.prev = null;
-            }
-        }else if (nextNode == null) {
-            // Simply remove the last node by updating the second last node's next to null
-            prevNode.next = null;
-        } else {  // Case 3: Deleting a middle node
-            prevNode.next = nextNode;     // Link previous node to next node
-            nextNode.prev = prevNode;     // Link next node to previous node
-        }
-
-        return head;
+        return node;
     }
 }
