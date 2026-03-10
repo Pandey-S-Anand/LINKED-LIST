@@ -1,35 +1,41 @@
 class Solution {
-    // Inner class to help build a doubly linked list
-    private class DoublyLinkedList {
-        private Node head; // Points to the first node in the list
-        private Node tail; // Points to the last node in the list
-
-        // Appends a new node with given data at the end of the list
-        public void append(int data) {
-            Node newNode = new Node(data);
-
-            // Case 1: Empty list
-            if (head == null) {
-                head = tail = newNode; // First node becomes both head and tail
-            } else {
-                // Case 2: Non-empty list — append at tail
-                tail.next = newNode;      // Set current tail's next to new node
-                newNode.prev = tail;      // Set new node's prev to current tail
-                tail = newNode;           // Move tail to the new node
-            }
-        }
-    }
-
-
     Node constructDLL(int arr[]) {
-        DoublyLinkedList doublyLinkedList = new DoublyLinkedList();
+        // Dummy head simplifies list creation
+        Node head = new Node(-1);
 
-        // Insert each array element into the doubly linked list
+        // Tail pointer always points to the last node of the DLL
+        Node tail = head;
+
+        // Traverse the array and create nodes for the DLL
         for (int data : arr) {
-            doublyLinkedList.append(data);
+            // Create a new node with current array value
+            Node node = new Node(data);
+
+            /*
+             * Link the new node with the current tail
+             *
+             * tail <-> node
+             */
+            tail.next = node;
+            node.prev = tail;
+
+            // Move the tail pointer forward
+            tail = tail.next;
         }
 
-        // Return the head of the constructed doubly linked list
-        return doublyLinkedList.head;
+        /*
+         * The first real node of the list is head.next
+         * because head is a dummy node.
+         */
+        head = head.next;
+
+        /*
+         * Remove the backward link to the dummy node
+         * so the real head's prev becomes null.
+         */
+        head.prev = null;
+
+        // Return the head of the constructed DLL
+        return head;
     }
 }
