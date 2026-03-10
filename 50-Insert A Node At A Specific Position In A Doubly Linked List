@@ -1,31 +1,58 @@
-class Solution {
-    // Function to insert a new node with given value `num` after index `index` in the doubly linked list
-    Node addNode(Node head, int index, int num) {
-        Node currentNode = head;
+/*
+class Node
+{
+    int data;
+    Node next;
+    Node prev;
+    Node(int data)
+    {
+        this.data = data;
+        next = prev = null;
+    }
+}
+*/
 
-        // Traverse to the node at the specified index
-        while (index > 0 && currentNode != null) {
-            currentNode = currentNode.next;
+class Solution {
+    Node insertAtPos(Node head, int index, int data) {
+        // Find the node at the given index
+        Node targetNode = getNodeAt(head, index);
+
+        // Create the new node to be inserted
+        Node newNode = new Node(data);
+
+        // Save the next node because we will modify targetNode.next.
+        Node next = targetNode.next;
+
+        //Connect targetNode to newNode
+        targetNode.next = newNode;
+        newNode.prev = targetNode;
+
+        // Connect newNode to the original next node
+        newNode.next = next;
+
+        /*
+         * If next exists, fix its prev pointer
+         *
+         * After insertion:
+         * targetNode <-> newNode <-> next
+         */
+        if (next != null) {
+            next.prev = newNode;
+        }
+
+        // Head remains unchanged since insertion happens after index
+        return head;
+    }
+
+    private Node getNodeAt(Node head, int index) {
+        Node node = head;
+
+        // Traverse until the required index is reached
+        while (index != 0) {
+            node = node.next;
             index--;
         }
 
-        // Create the new node to be inserted
-        Node node = new Node(num);
-        Node nextNode = currentNode.next;
-
-        // Case 1: Inserting at the end of the list
-        if (nextNode == null) {
-            currentNode.next = node;  // Link new node after current
-            node.prev = currentNode;  // Set new node's previous to current
-        } else {  // Case 2: Inserting between current and next node
-            currentNode.next = node;   // Link current to new node
-            node.prev = currentNode;   // Set new node's previous to current
-
-            node.next = nextNode;      // Link new node to next node
-            nextNode.prev = node;      // Update next node's previous to new node
-        }
-
-        // Return the head of the list
-        return head;
+        return node;
     }
 }
