@@ -1,49 +1,132 @@
-//Optimal Approach
+//Method 1 : Swap the node values
 
 class Solution {
-    public DLLNode reverseDLL(DLLNode head) {
-        DLLNode tail = getTail(head); // Get the last node (tail) using fast pointer approach
-        DLLNode start = head;
-        DLLNode end = tail;
+    /**
+     * Reverses the doubly linked list by swapping node values
+     * using a two-pointer approach.
+     *
+     * Instead of changing the actual node links, we keep the structure
+     * of the list intact and simply swap the values of nodes from
+     * the beginning and the end.
+     */
+    public Node reverse(Node head) {
+        Node start = head;
 
-        /*
-         * Swap the data between corresponding nodes from the front (start)
-         * and back (end) until they meet or cross each other.
-         * 
-         * For odd-sized lists: loop ends when start == end
-         * For even-sized lists: loop ends when start.prev == end
+        // Find the last node of the list
+        Node end = getTail(head);
+
+        /**
+         * We stop when the two pointers meet or cross each other.
+         *
+         * Condition explanation:
+         *
+         * start != end
+         * ----------------
+         * Handles the case of an odd length list.
+         *
+         * Example (odd length):
+         * 1 <-> 2 <-> 3 <-> 4 <-> 5
+         *
+         * start → 1, end → 5
+         * start → 2, end → 4
+         * start → 3, end → 3   (stop here)
+         *
+         *
+         * start.prev != end
+         * -------------------
+         * Handles the case of an even length list.
+         *
+         * Example (even length):
+         * 1 <-> 2 <-> 3 <-> 4
+         *
+         * start → 1, end → 4
+         * start → 2, end → 3
+         *
+         * If we only used (start != end),
+         * pointers would cross and we would swap again incorrectly.
+         *
+         * The condition (start.prev != end) ensures we stop
+         * when pointers cross in even length lists.
          */
         while (start != end && start.prev != end) {
-            // Swap data values
+            // Swap values of the nodes
             swap(start, end);
-            // Move pointers inward
+
+            // Move both pointers towards the center
             start = start.next;
             end = end.prev;
         }
 
-        return head; // Return the list head
+        return head;
     }
 
-    private DLLNode getTail(DLLNode head) {
-        DLLNode fast = head;
-        DLLNode fastPrev = null;
+    // Returns the last node (tail) of the doubly linked list
+    private Node getTail(Node head) {
+        Node node = head;
 
-        /*
-         * Use a fast pointer to traverse 2 nodes at a time and track its previous node.
-         * - If the list has odd length, fast will end at the last node.
-         * - If even, fast becomes null and fastPrev holds the last node.
-         */
-        while (fast != null && fast.next != null) {
-            fastPrev = fast.next;
-            fast = fast.next.next;
+        // Traverse until the last node
+        while (node.next != null) {
+            node = node.next;
         }
 
-        return (fast != null) ? fast : fastPrev;
+        return node;
     }
-    
-    private void swap(DLLNode start, DLLNode end){
+
+    /**
+     * Swaps the data values of two nodes.
+     * The actual node links remain unchanged.
+     */
+    private void swap(Node start, Node end) {
         int temp = start.data;
         start.data = end.data;
-        end.data = temp;  
+        end.data = temp;
+    }
+}
+
+
+//Method 2 : Swap the nodes itself
+
+class Solution {
+    public Node reverse(Node head) {
+        // If list has only one node, it is already reversed
+        if (head.next == null) {
+            return head;
+        }
+
+        Node tail = null; // Will store the new head of the reversed list
+        Node node = head; // Traversal pointer
+
+        while (node != null) {
+            // Save the next node
+            Node nextNode = node.next;
+            // Save the previous node
+            Node prevNode = node.prev;
+
+            /**
+            * The node that was previously behind (prev node) now becomes
+            * the next node after reversing the links.
+            */
+            node.next = prevNode;
+            /*
+             * After reversal, the current node becomes the previous node
+             * of the node that was originally before it.
+             * So we update its `prev` pointer to point back to the current node.
+             */
+            if (prevNode != null) {
+                prevNode.prev = node;
+            }
+
+            /*
+             * Keep track of the most recently processed node.
+             * When the loop finishes, this node becomes the new head.
+             */
+            tail = node;
+
+            // Move to the original next node
+            node = nextNode;
+        }
+
+        // tail now points to the new head of the reversed list
+        return tail;
     }
 }
