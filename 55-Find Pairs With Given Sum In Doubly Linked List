@@ -1,61 +1,57 @@
 class Solution {
-    public static ArrayList<ArrayList<Integer>> findPairsWithGivenSum(int target, Node head) {
-        ArrayList<ArrayList<Integer>> pairs = new ArrayList<>();
-
-        // Edge case: If the doubly linked list is empty or has only one node, no pairs can be formed
-        if (head == null || head.next == null) {
-            return pairs;
+    public static ArrayList<ArrayList<Integer>> findPairsWithGivenSum(int targetSum, Node head) {
+        // If the list has fewer than 2 nodes, no pair can exist
+        if (head.next == null) {
+            return new ArrayList<>();
         }
 
-        // Get the tail of the doubly linked list
-        Node tail = getTail(head);
+        // Stores all valid pairs found
+        ArrayList<ArrayList<Integer>> pairs = new ArrayList<>();
 
-        // Initialize two pointers: start pointing to the head and end pointing to the tail
-        Node start = head;
-        Node end = tail;
+        // Left pointer starts from the smallest value
+        Node left = head;
 
-        // Loop until the two pointers meet or cross each other
-        // `start != end` ensures we don't consider the same node for even-sized lists
-        // `start.prev != end` ensures we don't cross pointers in odd-sized lists
-        while (start != end && start.prev != end) {
-            int sum = start.data + end.data; // Calculate the sum of the values at start and end
+        // Right pointer starts from the largest value
+        Node right = getTail(head);
 
-            if (sum == target) {
-                // If the sum matches the target, add the pair to the result list
-                pairs.add(new ArrayList<>(Arrays.asList(start.data, end.data)));
+        /**
+         * Continue until pointers meet or cross each other.
+         *
+         * left != right
+         *     → handles odd length lists where pointers meet
+         *
+         * left.prev != right
+         *     → handles even length lists where pointers cross
+         */
+        while (left != right && left.prev != right) {
+            int pairSum = left.data + right.data;
 
-                // Move both pointers inward
-                start = start.next;
-                end = end.prev;
-            } else if (sum < target) {
-                // If the sum is less than the target, move the start pointer forward
-                start = start.next;
-            } else {
-                // If the sum is greater than the target, move the end pointer backward
-                end = end.prev;
+            // Case 1: Found a valid pair
+            if (pairSum == targetSum) {
+                pairs.add(new ArrayList<>(List.of(left.data, right.data)));
+
+                // Move both pointers inward to look for new pairs
+                left = left.next;
+                right = right.prev;
+            } else if (pairSum < targetSum) { // Case 2: Sum is smaller than required → increase sum
+                left = left.next;
+            } else { // Case 3: Sum is larger than required → decrease sum
+                right = right.prev;
             }
         }
 
-        // Return the list of pairs
         return pairs;
     }
 
+    // Returns the last node (tail) of the doubly linked list.
     private static Node getTail(Node head) {
-        Node fast = head; // Pointer to traverse the list at twice the speed
-        Node fastPrev = null; // To track the last node when the list size is even
+        Node node = head;
 
-        // Traverse the list until `fast` reaches the end
-        while (fast != null && fast.next != null) {
-            fastPrev = fast.next; // Keep track of fast.next
-            fast = fast.next.next; // Move fast pointer two steps
+        // Traverse until we reach the last node
+        while (node.next != null) {
+            node = node.next;
         }
 
-        // If the doubly linked list size is odd, fast will point to the last node
-        if (fast != null) {
-            return fast; // Return the last node
-        }
-
-        // If the doubly linked list size is even, fastNext will point to the last node
-        return fastPrev;
+        return node;
     }
 }
