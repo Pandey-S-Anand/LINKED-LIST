@@ -1,51 +1,50 @@
 class Solution {
-    // Helper class to build the resulting linked list without duplicates
-    private static class NodeBuilder {
-        private Node head; // Head of the newly built list
-        private Node tail; // Tail to append new unique nodes efficiently
-
-        // Appends a node to the end of the list
-        private void append(Node node) {
-            if (head == null) {
-                // First node being added to the list
-                head = tail = node;
-            } else {
-                // Link the current tail to the new node
-                tail.next = node;
-                node.prev = tail; // Set previous pointer for doubly linked list
-                tail = node; // Update the tail to the new node
-            }
-        }
-    }
-
-    // Removes duplicate nodes from a sorted doubly linked list
     Node removeDuplicates(Node head) {
-        // Edge case: if list contains only one node, return as is
+        // If the list has only one node, no duplicates can exist
         if (head.next == null) {
             return head;
         }
 
-        NodeBuilder list = new NodeBuilder();
-
-        // Always add the first node (assumed unique initially)
-        list.append(lastUniqueNode);
-
         // Start checking from the second node
-        Node currentNode = head.next;
+        Node node = head.next;
 
-        while (currentNode != null) {
-            // If current node contains a different value than the last unique node
-            if (list.tail.data != currentNode.data) {
-                list.append(currentNode); // Append it to result list
+        while (node != null) {
+            Node prevNode = node.prev;
+            Node nextNode = node.next;
+
+            /*
+             * If the current node has the same value as the previous node,
+             * it means this node is a duplicate.
+             */
+            if (prevNode.data == node.data) {
+
+                /*
+                 * Remove the current node by linking the previous node
+                 * directly to the next node.
+                 */
+                prevNode.next = nextNode;
+
+                /*
+                 * If the next node exists, update its prev pointer
+                 * so that it now points back to prevNode.
+                 */
+                if (nextNode != null) {
+                    nextNode.prev = prevNode;
+                }
+
+                /*
+                 * Detach the current node completely from the list.
+                 * This is optional but good practice.
+                 */
+                node.next = null;
+                node.prev = null;
             }
 
-            // Move to the next node in the original list
-            currentNode = currentNode.next;
+            // Move to the next node in the list
+            node = nextNode;
         }
 
-        // Ensure the new list ends correctly and doesn’t point to any duplicate node
-        list.tail.next = null;
-
-        return list.head; // Return the head of the deduplicated list
+        // Head remains unchanged because duplicates are removed only from nodes after the head.
+        return head;
     }
 }
