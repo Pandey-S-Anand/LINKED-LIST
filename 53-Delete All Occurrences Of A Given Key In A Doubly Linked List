@@ -1,35 +1,56 @@
 class Solution {
-    // Helper class to build the filtered linked list dynamically
-    private static class NodeBuilder {
-        private Node head; 
-        private Node tail; 
+    static Node deleteAllOccurOfX(Node head, int key) {
+        // Start traversing from the head
+        Node node = head;
 
-        // Appends a node to the end of the filtered list
-        private void append(Node node) {
-            if (head == null) {
-                head = tail = node; 
+        while (node != null) {
+            // If current node contains the key, delete it
+            if (node.data == key) {
+
+                Node prevNode = node.prev;
+                Node nextNode = node.next;
+
+                /*
+                 * If the node to be deleted is the head,
+                 * update head to the next node.
+                 */
+                if (node == head) {
+                    head = node.next;
+                }
+
+                /*
+                 * Update forward link of the previous node
+                 * so it skips the current node.
+                 */
+                if (prevNode != null) {
+                    prevNode.next = nextNode;
+                }
+
+                /*
+                 * Update backward link of the next node
+                 * so it skips the current node.
+                 */
+                if (nextNode != null) {
+                    nextNode.prev = prevNode;
+                }
+
+                /*
+                 * Completely detach the current node
+                 * from the list.
+                 */
+                node.next = null;
+                node.prev = null;
+
+                // Continue traversal from the next node
+                node = nextNode;
+
             } else {
-                tail.next = node;   
-                tail = node;
+                // Move forward if current node is not deleted
+                node = node.next;
             }
         }
-    }
 
-    static Node deleteAllOccurOfX(Node head, int x) {
-        NodeBuilder filteredList = new NodeBuilder();
-        Node currentNode = head;
-
-        // Traverse the original list
-        while (currentNode != null) {
-            if (currentNode.data != x) {
-                filteredList.append(currentNode);  // Keep the node if it's not equal to x
-            }
-            currentNode = currentNode.next;
-        }
-
-        // Break connection from the last valid node to any old remaining nodes
-        filteredList.tail.next = null;
-
-        return filteredList.head; // Return the head of the filtered list
+        // Return possibly updated head
+        return head;
     }
 }
